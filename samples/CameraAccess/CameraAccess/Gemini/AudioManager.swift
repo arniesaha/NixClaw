@@ -46,35 +46,39 @@ class AudioManager {
     let inputNode = audioEngine.inputNode
     let inputNativeFormat = inputNode.outputFormat(forBus: 0)
 
-    let targetFormat = AVAudioFormat(
-      commonFormat: .pcmFormatInt16,
-      sampleRate: GeminiConfig.inputAudioSampleRate,
-      channels: GeminiConfig.audioChannels,
-      interleaved: true
-    )!
+    // Always tap in native format (Float32) and convert to Int16 PCM manually.
+    // AVAudioEngine taps don't reliably convert between sample formats inline.
+    let needsResample = inputNativeFormat.sampleRate != GeminiConfig.inputAudioSampleRate
+        || inputNativeFormat.channelCount != GeminiConfig.audioChannels
 
-    let tapFormat: AVAudioFormat
     var converter: AVAudioConverter?
-
-    if inputNativeFormat.sampleRate == GeminiConfig.inputAudioSampleRate
-        && inputNativeFormat.channelCount == GeminiConfig.audioChannels {
-      tapFormat = targetFormat
-    } else {
-      tapFormat = inputNativeFormat
-      converter = AVAudioConverter(from: inputNativeFormat, to: targetFormat)
+    if needsResample {
+      let resampleFormat = AVAudioFormat(
+        commonFormat: .pcmFormatFloat32,
+        sampleRate: GeminiConfig.inputAudioSampleRate,
+        channels: GeminiConfig.audioChannels,
+        interleaved: false
+      )!
+      converter = AVAudioConverter(from: inputNativeFormat, to: resampleFormat)
     }
 
-    inputNode.installTap(onBus: 0, bufferSize: 1024, format: tapFormat) { [weak self] buffer, _ in
+    inputNode.installTap(onBus: 0, bufferSize: 1024, format: inputNativeFormat) { [weak self] buffer, _ in
       guard let self else { return }
 
       if let converter {
-        guard let convertedBuffer = self.convertBuffer(buffer, using: converter, targetFormat: targetFormat) else {
+        let resampleFormat = AVAudioFormat(
+          commonFormat: .pcmFormatFloat32,
+          sampleRate: GeminiConfig.inputAudioSampleRate,
+          channels: GeminiConfig.audioChannels,
+          interleaved: false
+        )!
+        guard let resampled = self.convertBuffer(buffer, using: converter, targetFormat: resampleFormat) else {
           return
         }
-        let data = self.bufferToData(convertedBuffer)
+        let data = self.float32BufferToInt16Data(resampled)
         self.onAudioCaptured?(data)
       } else {
-        let data = self.bufferToData(buffer)
+        let data = self.float32BufferToInt16Data(buffer)
         self.onAudioCaptured?(data)
       }
     }
@@ -130,25 +134,17 @@ class AudioManager {
 
   // MARK: - Private helpers
 
-  private func bufferToData(_ buffer: AVAudioPCMBuffer) -> Data {
+  private func float32BufferToInt16Data(_ buffer: AVAudioPCMBuffer) -> Data {
     let frameCount = Int(buffer.frameLength)
-    let bytesPerFrame = Int(buffer.format.streamDescription.pointee.mBytesPerFrame)
-
-    if buffer.format.commonFormat == .pcmFormatInt16 {
-      guard let int16Data = buffer.int16ChannelData else { return Data() }
-      return Data(bytes: int16Data[0], count: frameCount * bytesPerFrame)
-    } else if buffer.format.commonFormat == .pcmFormatFloat32 {
-      guard let floatData = buffer.floatChannelData else { return Data() }
-      var int16Array = [Int16](repeating: 0, count: frameCount)
-      for i in 0..<frameCount {
-        let sample = max(-1.0, min(1.0, floatData[0][i]))
-        int16Array[i] = Int16(sample * Float(Int16.max))
-      }
-      return int16Array.withUnsafeBufferPointer { ptr in
-        Data(buffer: ptr)
-      }
+    guard frameCount > 0, let floatData = buffer.floatChannelData else { return Data() }
+    var int16Array = [Int16](repeating: 0, count: frameCount)
+    for i in 0..<frameCount {
+      let sample = max(-1.0, min(1.0, floatData[0][i]))
+      int16Array[i] = Int16(sample * Float(Int16.max))
     }
-    return Data()
+    return int16Array.withUnsafeBufferPointer { ptr in
+      Data(buffer: ptr)
+    }
   }
 
   private func convertBuffer(
