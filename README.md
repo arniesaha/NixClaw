@@ -17,6 +17,8 @@ The glasses camera streams at ~1fps to Gemini for visual context, while audio fl
 
 ## How It Works
 
+![How It Works](assets/how-it-works.png)
+
 ```
 Meta Ray-Ban Glasses (or iPhone camera)
        |
