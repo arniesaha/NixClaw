@@ -1,4 +1,4 @@
-# AI Glasses Assistant
+# VisionClaw
 
 A real-time AI assistant for Meta Ray-Ban smart glasses. See what you see, hear what you say, and take actions on your behalf -- all through voice.
 
@@ -52,8 +52,8 @@ Gemini Live API (WebSocket)
 ### 1. Clone and open
 
 ```bash
-git clone https://github.com/user/meta-wearables-dat-ios.git
-cd meta-wearables-dat-ios/samples/CameraAccess
+git clone https://github.com/sseanliu/VisionClaw.git
+cd VisionClaw/samples/CameraAccess
 open CameraAccess.xcodeproj
 ```
 
