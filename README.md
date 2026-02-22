@@ -8,11 +8,23 @@ A multi-mode AI assistant — through Meta Ray-Ban smart glasses, iPhone camera,
 
 ![Cover](assets/cover.png)
 
-Built on [Meta Wearables DAT SDK](https://github.com/facebook/meta-wearables-dat-ios) + [Gemini Live API](https://ai.google.dev/gemini-api/docs/live) + [OpenClaw](https://github.com/nichochar/openclaw).
+Built on [Meta Wearables DAT SDK](https://github.com/facebook/meta-wearables-dat-ios) + [Gemini Live API](https://ai.google.dev/gemini-api/docs/live) + [OpenClaw](https://github.com/openclaw/openclaw).
+
+## Features
+
+- 🎙️ **Real-time voice** — Bidirectional audio via Gemini Live (native audio, not speech-to-text)
+- 👓 **Smart glasses** — See through Meta Ray-Ban camera, respond in real-time
+- 📱 **iPhone camera** — Visual AI without glasses
+- 🔊 **Audio-only mode** — Voice conversations with AirPods, speakers, or built-in mic
+- 🔧 **Action execution** — Messaging, web search, smart home, notes, and more via OpenClaw
+- 🏃 **Background mode** — Conversation continues when you lock your phone or switch apps
+- 🏝️ **Live Activity** — Session status on lock screen and Dynamic Island
+- ⚙️ **Configurable** — xcconfig for builds, in-app settings for runtime changes
+- 🧙 **Setup wizard** — First-launch walkthrough, no code editing required
 
 ## Backstory
 
-NixClaw started from a conversation with **Nix**, my personal [OpenClaw](https://github.com/nichochar/openclaw) agent. I was using VisionClaw to stream video from Meta Ray-Ban glasses to Gemini, but it was limited to voice + vision — it couldn't actually *do* anything. Meanwhile, Nix could send messages, search the web, manage my lists, control smart home devices, and more — but had no eyes or ears.
+NixClaw started from a conversation with **Nix**, my personal [OpenClaw](https://github.com/openclaw/openclaw) agent. I was using VisionClaw to stream video from Meta Ray-Ban glasses to Gemini, but it was limited to voice + vision — it couldn't actually *do* anything. Meanwhile, Nix could send messages, search the web, manage my lists, control smart home devices, and more — but had no eyes or ears.
 
 NixClaw bridges the two: Gemini handles the real-time voice and vision conversation, and when you ask it to take an action, it delegates to your OpenClaw agent. The name is literally **Nix** + Open**Claw** — the AI assistant that can see, hear, *and* act.
 
@@ -70,9 +82,9 @@ Gemini Live API (WebSocket)
 
 ### 1. Set up OpenClaw
 
-NixClaw is designed to work with an [OpenClaw](https://github.com/nichochar/openclaw) agent. Without it, you get voice + vision but no ability to take actions — which is the whole point.
+NixClaw is designed to work with an [OpenClaw](https://github.com/openclaw/openclaw) agent. Without it, you get voice + vision but no ability to take actions — which is the whole point.
 
-Follow the [OpenClaw setup guide](https://github.com/nichochar/openclaw) to install and configure your agent. Make sure the gateway is enabled:
+Follow the [OpenClaw setup guide](https://github.com/openclaw/openclaw) to install and configure your agent. Make sure the gateway is enabled:
 
 In `~/.openclaw/openclaw.json`:
 
@@ -229,7 +241,7 @@ Gemini Live supports function calling. This app declares a single `execute` tool
 - iOS 17.0+
 - Xcode 15.0+
 - Gemini API key ([get one free](https://aistudio.google.com/apikey))
-- [OpenClaw](https://github.com/nichochar/openclaw) running on your Mac
+- [OpenClaw](https://github.com/openclaw/openclaw) running on your Mac
 - Meta Ray-Ban glasses (optional — use iPhone camera or audio-only mode)
 
 ## Troubleshooting
@@ -242,7 +254,25 @@ Gemini Live supports function calling. This app declares a single `execute` tool
 
 **Gemini doesn't hear me** — Check that microphone permission is granted. The app uses aggressive voice activity detection — speak clearly and at normal volume.
 
+**Using NixClaw away from home** — The default setup uses your local network. For remote access, you can either use [Tailscale](https://tailscale.com) (add an ATS exception in Info.plist for HTTP over Tailscale IPs) or expose your gateway via [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) for HTTPS access from anywhere.
+
+**Background audio stops after a while** — iOS may suspend background audio if no sound is playing. The app uses background audio mode to stay alive, but extended silence may cause iOS to reclaim resources. Speak or tap the screen periodically to keep the session active.
+
 For DAT SDK issues, see the [developer documentation](https://wearables.developer.meta.com/docs/develop/) or the [discussions forum](https://github.com/facebook/meta-wearables-dat-ios/discussions).
+
+## What's Different from VisionClaw
+
+NixClaw is a fork of [VisionClaw](https://github.com/sseanliu/VisionClaw) with these additions:
+
+| Feature | VisionClaw | NixClaw |
+|---------|-----------|---------|
+| Voice + Vision | ✅ | ✅ |
+| OpenClaw integration | ❌ | ✅ Built-in |
+| Background audio | ❌ | ✅ |
+| Live Activity / Dynamic Island | ❌ | ✅ |
+| Configurable (xcconfig) | ❌ | ✅ |
+| Setup wizard | ❌ | ✅ |
+| In-app settings | ❌ | ✅ |
 
 ## License
 
