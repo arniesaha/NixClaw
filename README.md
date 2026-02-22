@@ -24,11 +24,11 @@ Built on [Meta Wearables DAT SDK](https://github.com/facebook/meta-wearables-dat
 
 ## Backstory
 
-NixClaw started from a conversation with **Nix**, my personal [OpenClaw](https://github.com/openclaw/openclaw) agent. I was using VisionClaw to stream video from Meta Ray-Ban glasses to Gemini, but it was limited to voice + vision — it couldn't actually *do* anything. Meanwhile, Nix could send messages, search the web, manage my lists, control smart home devices, and more — but had no eyes or ears.
+NixClaw started from a conversation with **Nix**, my personal [OpenClaw](https://github.com/openclaw/openclaw) agent. I was using VisionClaw to stream video from Meta Ray-Ban glasses to Gemini — great for real-time voice + vision, but it had two key limitations: it had no way to call your agent by name and route actions through a tool call, and it required the app to stay in the foreground at all times.
 
-NixClaw bridges the two: Gemini handles the real-time voice and vision conversation, and when you ask it to take an action, it delegates to your OpenClaw agent. The name is literally **Nix** + Open**Claw** — the AI assistant that can see, hear, *and* act.
+Meanwhile, Nix could send messages, search the web, manage my lists, control smart home devices, and more — but had no eyes or ears.
 
-The audio-only and background modes exist specifically for this: you can have a hands-free conversation with your agent while walking around, and it keeps running when you lock your phone.
+NixClaw bridges the two: I added an `execute` tool that lets Gemini call your OpenClaw agent by name, routing actions through the gateway. I also added background audio mode so the conversation keeps running when you lock your phone or switch apps. The name is literally **Nix** + Open**Claw** — the AI assistant that can see, hear, *and* act.
 
 ## What It Does
 
