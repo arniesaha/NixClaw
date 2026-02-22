@@ -1,8 +1,14 @@
 import SwiftUI
+#if DEBUG
+import MWDATMockDevice
+#endif
 
 struct SettingsView: View {
   @EnvironmentObject private var appConfig: AppConfig
   @Environment(\.dismiss) private var dismiss
+  #if DEBUG
+  @EnvironmentObject private var debugMenuViewModel: DebugMenuViewModel
+  #endif
 
   @State private var showResetConfirmation = false
 
@@ -22,6 +28,9 @@ struct SettingsView: View {
         personalizationSection
         geminiSection
         openClawSection
+        #if DEBUG
+        developerSection
+        #endif
         resetSection
         aboutSection
       }
@@ -169,6 +178,31 @@ struct SettingsView: View {
       Link("Report an issue →", destination: URL(string: "https://github.com/arniesaha/NixClaw/issues")!)
     }
   }
+
+  #if DEBUG
+  private var developerSection: some View {
+    Section {
+      Button {
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+          debugMenuViewModel.showDebugMenu = true
+        }
+      } label: {
+        HStack {
+          Label("Mock Device Kit", systemImage: "ladybug.fill")
+          Spacer()
+          Image(systemName: "chevron.right")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
+    } header: {
+      Text("Developer")
+    } footer: {
+      Text("Simulate Meta Ray-Ban glasses connections for testing.")
+    }
+  }
+  #endif
 
   // MARK: - Helpers
 

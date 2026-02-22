@@ -71,9 +71,7 @@ struct NixClawApp: App {
             .sheet(isPresented: $debugMenuViewModel.showDebugMenu) {
               MockDeviceKitView(viewModel: debugMenuViewModel.mockDeviceKitViewModel)
             }
-            .overlay {
-              DebugMenuView(debugMenuViewModel: debugMenuViewModel)
-            }
+            .environmentObject(debugMenuViewModel)
             #endif
         }
       }

@@ -21,6 +21,9 @@ struct NonStreamView: View {
   @ObservedObject var wearablesVM: WearablesViewModel
   @ObservedObject var geminiVM: GeminiSessionViewModel
   @EnvironmentObject private var appConfig: AppConfig
+  #if DEBUG
+  @EnvironmentObject private var debugMenuViewModel: DebugMenuViewModel
+  #endif
   @State private var sheetHeight: CGFloat = 300
   @State private var showSettings = false
 
@@ -120,8 +123,14 @@ struct NonStreamView: View {
       .padding(.all, 24)
     }
     .sheet(isPresented: $showSettings) {
+      #if DEBUG
       SettingsView()
         .environmentObject(appConfig)
+        .environmentObject(debugMenuViewModel)
+      #else
+      SettingsView()
+        .environmentObject(appConfig)
+      #endif
     }
     .sheet(isPresented: $wearablesVM.showGettingStartedSheet) {
       if #available(iOS 16.0, *) {

@@ -19,6 +19,9 @@ import SwiftUI
 struct HomeScreenView: View {
   @ObservedObject var viewModel: WearablesViewModel
   @EnvironmentObject private var appConfig: AppConfig
+  #if DEBUG
+  @EnvironmentObject private var debugMenuViewModel: DebugMenuViewModel
+  #endif
   var onSelectAudioOnly: () -> Void
   var onSelectiPhoneCamera: () -> Void
 
@@ -109,9 +112,20 @@ struct HomeScreenView: View {
       .padding(.all, 24)
     }
     .sheet(isPresented: $showSettings) {
-      SettingsView()
-        .environmentObject(appConfig)
+      settingsSheet
     }
+  }
+
+  @ViewBuilder
+  private var settingsSheet: some View {
+    #if DEBUG
+    SettingsView()
+      .environmentObject(appConfig)
+      .environmentObject(debugMenuViewModel)
+    #else
+    SettingsView()
+      .environmentObject(appConfig)
+    #endif
   }
 
 }
