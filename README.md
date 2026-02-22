@@ -1,30 +1,43 @@
-# VisionClaw 🦞+😎
+# NixClaw
 
-![VisionClaw](assets/teaserimage.png)
+> Forked from [VisionClaw](https://github.com/sseanliu/VisionClaw)
 
-A real-time AI assistant for Meta Ray-Ban smart glasses. See what you see, hear what you say, and take actions on your behalf -- all through voice.
+![NixClaw](assets/teaserimage.png)
+
+A multi-mode AI assistant — through Meta Ray-Ban smart glasses, iPhone camera, or just voice. See what you see, hear what you say, and take actions on your behalf.
 
 ![Cover](assets/cover.png)
 
-Built on [Meta Wearables DAT SDK](https://github.com/facebook/meta-wearables-dat-ios) + [Gemini Live API](https://ai.google.dev/gemini-api/docs/live) + [OpenClaw](https://github.com/nichochar/openclaw) (optional).
+Built on [Meta Wearables DAT SDK](https://github.com/facebook/meta-wearables-dat-ios) + [Gemini Live API](https://ai.google.dev/gemini-api/docs/live) + [OpenClaw](https://github.com/nichochar/openclaw).
+
+## Backstory
+
+NixClaw started from a conversation with **Nix**, my personal [OpenClaw](https://github.com/nichochar/openclaw) agent. I was using VisionClaw to stream video from Meta Ray-Ban glasses to Gemini, but it was limited to voice + vision — it couldn't actually *do* anything. Meanwhile, Nix could send messages, search the web, manage my lists, control smart home devices, and more — but had no eyes or ears.
+
+NixClaw bridges the two: Gemini handles the real-time voice and vision conversation, and when you ask it to take an action, it delegates to your OpenClaw agent. The name is literally **Nix** + Open**Claw** — the AI assistant that can see, hear, *and* act.
+
+The audio-only and background modes exist specifically for this: you can have a hands-free conversation with your agent while walking around, and it keeps running when you lock your phone.
 
 ## What It Does
 
-Put on your glasses, tap the AI button, and talk:
+Choose your mode and talk:
 
-- **"What am I looking at?"** -- Gemini sees through your glasses camera and describes the scene
-- **"Add milk to my shopping list"** -- delegates to OpenClaw, which adds it via your connected apps
-- **"Send a message to John saying I'll be late"** -- routes through OpenClaw to WhatsApp/Telegram/iMessage
-- **"Search for the best coffee shops nearby"** -- web search via OpenClaw, results spoken back
+- **Smart Glasses** — Gemini sees through your Meta Ray-Ban camera and responds in real-time
+- **Audio Only** — Voice conversations with AI using any audio device (AirPods, speakers, built-in mic), continues in background
+- **iPhone Camera** — Use your iPhone camera for visual AI without glasses
 
-The glasses camera streams at ~1fps to Gemini for visual context, while audio flows bidirectionally in real-time.
+Example commands:
+- **"What am I looking at?"** — Gemini sees through your camera and describes the scene
+- **"Add milk to my shopping list"** — delegates to OpenClaw, which adds it via your connected apps
+- **"Send a message to John saying I'll be late"** — routes through OpenClaw to WhatsApp/Telegram/iMessage
+- **"Search for the best coffee shops nearby"** — web search via OpenClaw, results spoken back
 
 ## How It Works
 
 ![How It Works](assets/how.png)
 
 ```
-Meta Ray-Ban Glasses (or iPhone camera)
+Meta Ray-Ban Glasses / iPhone Camera / Audio Only
        |
        | video frames + mic audio
        v
@@ -49,64 +62,17 @@ Gemini Live API (WebSocket)
 ```
 
 **Key pieces:**
-- **Gemini Live** -- real-time voice + vision AI over WebSocket (native audio, not STT-first)
-- **OpenClaw** (optional) -- local gateway that gives Gemini access to 56+ tools and all your connected apps
-- **iPhone mode** -- test the full pipeline using your iPhone camera instead of glasses
+- **Gemini Live** — real-time voice + vision AI over WebSocket (native audio, not STT-first)
+- **OpenClaw** — local gateway that gives Gemini access to 56+ tools and all your connected apps
+- **Three modes** — glasses (video + audio), iPhone camera (video + audio), audio-only (any device, runs in background)
 
 ## Quick Start
 
-### 1. Clone and open
+### 1. Set up OpenClaw
 
-```bash
-git clone https://github.com/sseanliu/VisionClaw.git
-cd VisionClaw/samples/CameraAccess
-open CameraAccess.xcodeproj
-```
+NixClaw is designed to work with an [OpenClaw](https://github.com/nichochar/openclaw) agent. Without it, you get voice + vision but no ability to take actions — which is the whole point.
 
-### 2. Add your Gemini API key
-
-Get a free API key at [Google AI Studio](https://aistudio.google.com/apikey).
-
-Open `samples/CameraAccess/CameraAccess/Gemini/GeminiConfig.swift` and replace the placeholder:
-
-```swift
-static let apiKey = "YOUR_GEMINI_API_KEY"  // <-- paste your key here
-```
-
-### 3. Build and run
-
-Select your iPhone as the target device and hit Run (Cmd+R).
-
-### 4. Try it out
-
-**Without glasses (iPhone mode):**
-1. Tap **"Start on iPhone"** -- uses your iPhone's back camera
-2. Tap the **AI button** to start a Gemini Live session
-3. Talk to the AI -- it can see through your iPhone camera
-
-**With Meta Ray-Ban glasses:**
-
-First, enable Developer Mode in the Meta AI app:
-
-1. Open the **Meta AI** app on your iPhone
-2. Go to **Settings** (gear icon, bottom left)
-3. Tap **App Info**
-4. Tap the **App version** number **5 times** -- this unlocks Developer Mode
-5. Go back to Settings -- you'll now see a **Developer Mode** toggle. Turn it on.
-
-![How to enable Developer Mode](assets/dev_mode.png)
-
-Then in VisionClaw:
-1. Tap **"Start Streaming"** in the app
-2. Tap the **AI button** for voice + vision conversation
-
-## Setup: OpenClaw (Optional)
-
-OpenClaw gives Gemini the ability to take real-world actions: send messages, search the web, manage lists, control smart home devices, and more. Without it, Gemini is voice + vision only.
-
-### 1. Install and configure OpenClaw
-
-Follow the [OpenClaw setup guide](https://github.com/nichochar/openclaw). Make sure the gateway is enabled:
+Follow the [OpenClaw setup guide](https://github.com/nichochar/openclaw) to install and configure your agent. Make sure the gateway is enabled:
 
 In `~/.openclaw/openclaw.json`:
 
@@ -129,23 +95,11 @@ In `~/.openclaw/openclaw.json`:
 ```
 
 Key settings:
-- `bind: "lan"` -- exposes the gateway on your local network so your iPhone can reach it
-- `chatCompletions.enabled: true` -- enables the `/v1/chat/completions` endpoint (off by default)
-- `auth.token` -- the token your iOS app will use to authenticate
+- `bind: "lan"` — exposes the gateway on your local network so your iPhone can reach it
+- `chatCompletions.enabled: true` — enables the `/v1/chat/completions` endpoint (off by default)
+- `auth.token` — the token your iOS app will use to authenticate
 
-### 2. Configure the iOS app
-
-In `GeminiConfig.swift`, update the OpenClaw settings:
-
-```swift
-static let openClawHost = "http://Your-Mac.local"           // your Mac's Bonjour hostname
-static let openClawPort = 18789
-static let openClawGatewayToken = "your-gateway-token-here"  // must match gateway.auth.token
-```
-
-To find your Mac's Bonjour hostname: **System Settings > General > Sharing** -- it's shown at the top (e.g., `Johns-MacBook-Pro.local`).
-
-### 3. Start the gateway
+Start the gateway:
 
 ```bash
 openclaw gateway restart
@@ -157,17 +111,86 @@ Verify it's running:
 curl http://localhost:18789/health
 ```
 
-Now when you talk to the AI, it can execute tasks through OpenClaw.
+### 2. Clone and open
+
+```bash
+git clone https://github.com/arniesaha/NixClaw.git
+cd NixClaw
+open NixClaw.xcodeproj
+```
+
+### 3. Configure
+
+Copy the template config:
+
+```bash
+cp Config/NixClaw.xcconfig Config/Nix.xcconfig
+```
+
+Edit `Config/Nix.xcconfig` and fill in your values:
+
+```
+GEMINI_API_KEY = your-gemini-api-key
+DEFAULT_OPENCLAW_SCHEME = http
+DEFAULT_OPENCLAW_HOSTNAME = Your-Mac.local
+DEFAULT_OPENCLAW_PORT = 18789
+DEFAULT_OPENCLAW_TOKEN = your-gateway-token-here
+```
+
+Get a free Gemini API key at [Google AI Studio](https://aistudio.google.com/apikey).
+
+To find your Mac's hostname: **System Settings > General > Sharing** — it's shown at the top (e.g., `Johns-MacBook-Pro.local`).
+
+> **Note:** The scheme and hostname are separate because `//` in URLs is interpreted as a comment by the xcconfig parser.
+
+Then in Xcode, set the configuration file: **Project > Info > Configurations > set all to `Nix.xcconfig`**.
+
+Alternatively, skip the xcconfig step — the app will show a setup wizard on first launch where you can enter everything.
+
+### 4. Build and run
+
+Select your iPhone as the target device and hit Run (Cmd+R).
+
+### 5. Try it out
+
+From the home screen, choose your mode:
+
+**Audio Only:**
+1. Tap **"Audio Only"** — starts a voice conversation using your current audio device
+2. Talk to the AI — no camera needed, keeps running in background
+
+**iPhone Camera:**
+1. Tap **"iPhone Camera"** — uses your iPhone's back camera
+2. Talk to the AI — it can see through your iPhone camera
+
+**With Meta Ray-Ban glasses:**
+
+First, enable Developer Mode in the Meta AI app:
+
+1. Open the **Meta AI** app on your iPhone
+2. Go to **Settings** (gear icon, bottom left)
+3. Tap **App Info**
+4. Tap the **App version** number **5 times** — this unlocks Developer Mode
+5. Go back to Settings — you'll now see a **Developer Mode** toggle. Turn it on.
+
+![How to enable Developer Mode](assets/dev_mode.png)
+
+Then in NixClaw:
+1. Tap **"Connect Glasses"** in the app
+2. Tap the **AI button** for voice + vision conversation
 
 ## Architecture
 
 ### Key Files
 
-All source code is in `samples/CameraAccess/CameraAccess/`:
+All source code is in `NixClaw/`:
 
 | File | Purpose |
 |------|---------|
-| `Gemini/GeminiConfig.swift` | API keys, model config, system prompt |
+| `Config/AppConfig.swift` | Centralized runtime config (UserDefaults > Info.plist > fallback) |
+| `Config/SetupWizardView.swift` | First-launch setup wizard |
+| `Config/SettingsView.swift` | Runtime settings UI |
+| `Gemini/GeminiConfig.swift` | Model config, system prompt (reads from AppConfig) |
 | `Gemini/GeminiLiveService.swift` | WebSocket client for Gemini Live API |
 | `Gemini/AudioManager.swift` | Mic capture (PCM 16kHz) + audio playback (PCM 24kHz) |
 | `Gemini/GeminiSessionViewModel.swift` | Session lifecycle, tool call wiring, transcript state |
@@ -175,13 +198,14 @@ All source code is in `samples/CameraAccess/CameraAccess/`:
 | `OpenClaw/OpenClawBridge.swift` | HTTP client for OpenClaw gateway |
 | `OpenClaw/ToolCallRouter.swift` | Routes Gemini tool calls to OpenClaw |
 | `iPhone/IPhoneCameraManager.swift` | AVCaptureSession wrapper for iPhone camera mode |
+| `Background/BackgroundModeManager.swift` | App lifecycle and background mode transitions |
 
 ### Audio Pipeline
 
 - **Input**: iPhone mic -> AudioManager (PCM Int16, 16kHz mono, 100ms chunks) -> Gemini WebSocket
 - **Output**: Gemini WebSocket -> AudioManager playback queue -> iPhone speaker
 - **iPhone mode**: Uses `.voiceChat` audio session for echo cancellation + mic gating during AI speech
-- **Glasses mode**: Uses `.videoChat` audio session (mic is on glasses, speaker is on phone -- no echo)
+- **Glasses mode**: Uses `.videoChat` audio session (mic is on glasses, speaker is on phone — no echo)
 
 ### Video Pipeline
 
@@ -205,18 +229,18 @@ Gemini Live supports function calling. This app declares a single `execute` tool
 - iOS 17.0+
 - Xcode 15.0+
 - Gemini API key ([get one free](https://aistudio.google.com/apikey))
-- Meta Ray-Ban glasses (optional -- use iPhone mode for testing)
-- OpenClaw on your Mac (optional -- for agentic actions)
+- [OpenClaw](https://github.com/nichochar/openclaw) running on your Mac
+- Meta Ray-Ban glasses (optional — use iPhone camera or audio-only mode)
 
 ## Troubleshooting
 
-**"Gemini API key not configured"** -- Open `GeminiConfig.swift` and add your API key.
+**"Gemini API key not configured"** — Enter your API key in the setup wizard or in Settings.
 
-**OpenClaw connection timeout** -- Make sure your iPhone and Mac are on the same Wi-Fi network, the gateway is running (`openclaw gateway restart`), and the hostname in `GeminiConfig.swift` matches your Mac's Bonjour name.
+**OpenClaw connection timeout** — Make sure your iPhone and Mac are on the same Wi-Fi network, the gateway is running (`openclaw gateway restart`), and the hostname in your config matches your Mac's Bonjour name.
 
-**Echo/feedback in iPhone mode** -- The app mutes the mic while the AI is speaking. If you still hear echo, try turning down the volume.
+**Echo/feedback in iPhone mode** — The app mutes the mic while the AI is speaking. If you still hear echo, try turning down the volume.
 
-**Gemini doesn't hear me** -- Check that microphone permission is granted. The app uses aggressive voice activity detection -- speak clearly and at normal volume.
+**Gemini doesn't hear me** — Check that microphone permission is granted. The app uses aggressive voice activity detection — speak clearly and at normal volume.
 
 For DAT SDK issues, see the [developer documentation](https://wearables.developer.meta.com/docs/develop/) or the [discussions forum](https://github.com/facebook/meta-wearables-dat-ios/discussions).
 

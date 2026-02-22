@@ -1,0 +1,24 @@
+// NixClaw.xcconfig
+// Template configuration — safe to commit to open source repos.
+// Copy this file and fill in your own values for a personal build.
+
+// App Identity (build-time only)
+APP_DISPLAY_NAME = NixClaw
+APP_BUNDLE_IDENTIFIER = com.nixclaw.app
+APP_ICON_ASSET_NAME = AppIcon
+
+// Personalization defaults (can override at runtime via Settings)
+DEFAULT_ASSISTANT_NAME = Assistant
+DEFAULT_ACCENT_COLOR = 007AFF
+
+// API Keys (leave blank to show setup wizard on first launch)
+GEMINI_API_KEY =
+DEFAULT_OPENCLAW_SCHEME =
+DEFAULT_OPENCLAW_HOSTNAME =
+DEFAULT_OPENCLAW_PORT = 18789
+DEFAULT_OPENCLAW_TOKEN =
+
+// Xcode build settings — do not edit
+PRODUCT_NAME = $(APP_DISPLAY_NAME)
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_IDENTIFIER)
+ASSETCATALOG_COMPILER_APPICON_NAME = $(APP_ICON_ASSET_NAME)

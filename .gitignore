@@ -1,0 +1,6 @@
+*.xcframework/
+.DS_Store
+xcuserdata/
+Config/Nix.xcconfig
+Config/*.personal.xcconfig
+docs/
