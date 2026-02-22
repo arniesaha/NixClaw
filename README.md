@@ -267,7 +267,7 @@ NixClaw is a fork of [VisionClaw](https://github.com/sseanliu/VisionClaw) with t
 | Feature | VisionClaw | NixClaw |
 |---------|-----------|---------|
 | Voice + Vision | ✅ | ✅ |
-| OpenClaw integration | ❌ | ✅ Built-in |
+| OpenClaw integration | ✅ Optional | ✅ Built-in with named agent routing |
 | Background audio | ❌ | ✅ |
 | Live Activity / Dynamic Island | ❌ | ✅ |
 | Configurable (xcconfig) | ❌ | ✅ |
