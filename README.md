@@ -48,35 +48,10 @@ Example commands:
 
 ![How It Works](assets/how.png)
 
-```
-Meta Ray-Ban Glasses / iPhone Camera / Audio Only
-       |
-       | video frames + mic audio
-       v
-iOS App (this project)
-       |
-       | JPEG frames (~1fps) + PCM audio (16kHz)
-       v
-Gemini Live API (WebSocket)
-       |
-       |-- Audio response (PCM 24kHz) --> iOS App --> Speaker
-       |-- Tool calls (execute) -------> iOS App --> OpenClaw Gateway
-       |                                                  |
-       |                                                  v
-       |                                          56+ skills: web search,
-       |                                          messaging, smart home,
-       |                                          notes, reminders, etc.
-       |                                                  |
-       |<---- Tool response (text) <----- iOS App <-------+
-       |
-       v
-  Gemini speaks the result
-```
-
 **Key pieces:**
-- **Gemini Live**: real-time voice + vision AI over WebSocket (native audio, not STT-first)
-- **OpenClaw**: local gateway that gives Gemini access to 56+ tools and all your connected apps
-- **Three modes**: glasses (video + audio), iPhone camera (video + audio), audio-only (any device, runs in background)
+- **Gemini Live** — real-time voice + vision AI over WebSocket (native audio, not STT-first)
+- **OpenClaw** — local gateway that gives Gemini access to 56+ tools and all your connected apps
+- **Three modes** — glasses (video + audio), iPhone camera (video + audio), audio-only (runs in background)
 
 ## Quick Start
 
