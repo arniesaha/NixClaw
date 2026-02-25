@@ -1,0 +1,41 @@
+name: Build NixClaw
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, macOS, ARM64, xcode]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies             -project NixClaw.xcodeproj             -scheme NixClaw
+
+      - name: Create build config
+        run: |
+          cat > Config/Nix.xcconfig << EOF
+          #include "NixClaw.xcconfig"
+          APP_DISPLAY_NAME = NixClaw
+          DEFAULT_ASSISTANT_NAME = Nix
+          GEMINI_API_KEY = ${{ secrets.GEMINI_API_KEY }}
+          DEFAULT_OPENCLAW_SCHEME = http
+          DEFAULT_OPENCLAW_HOSTNAME = 192.168.1.70
+          DEFAULT_OPENCLAW_PORT = 18789
+          DEFAULT_OPENCLAW_TOKEN =
+          EOF
+
+      - name: Build (Debug, iphoneos)
+        run: |
+          xcodebuild build             -project NixClaw.xcodeproj             -scheme NixClaw             -destination "generic/platform=iOS"             -configuration Debug             CODE_SIGN_IDENTITY="-"             CODE_SIGNING_ALLOWED=NO             | tail -20
+
+      - name: Report
+        if: always()
+        run: echo "Build completed at Wed Feb 25 01:41:38 AM PST 2026"
