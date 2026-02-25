@@ -1,9 +1,17 @@
 import Foundation
+import UIKit
 
 @MainActor
 class ToolCallRouter {
   private let bridge: OpenClawBridge
   private var inFlightTasks: [String: Task<Void, Never>] = [:]
+
+  // Keywords that indicate the tool call wants to include the current view/image
+  private let imageKeywords = [
+    "picture", "photo", "image", "see", "look", "view", "show",
+    "what do you see", "what is this", "what's this", "identify",
+    "describe", "camera", "screenshot", "capture", "snap"
+  ]
 
   init(bridge: OpenClawBridge) {
     self.bridge = bridge
@@ -11,8 +19,10 @@ class ToolCallRouter {
 
   /// Route a tool call from Gemini to OpenClaw. Calls sendResponse with the
   /// JSON dictionary to send back as a toolResponse message.
+  /// If currentFrame is provided and the task mentions images/photos, it will be included.
   func handleToolCall(
     _ call: GeminiFunctionCall,
+    currentFrame: UIImage? = nil,
     sendResponse: @escaping ([String: Any]) -> Void
   ) {
     let callId = call.id
@@ -23,7 +33,16 @@ class ToolCallRouter {
 
     let task = Task { @MainActor in
       let taskDesc = call.args["task"] as? String ?? String(describing: call.args)
-      let result = await bridge.delegateTask(task: taskDesc, toolName: callName)
+
+      // Check if this task wants an image included
+      let shouldIncludeImage = self.taskNeedsImage(taskDesc) && currentFrame != nil
+      let imageToSend = shouldIncludeImage ? currentFrame : nil
+
+      if shouldIncludeImage {
+        NSLog("[ToolCall] Including current video frame with task")
+      }
+
+      let result = await bridge.delegateTask(task: taskDesc, toolName: callName, image: imageToSend)
 
       guard !Task.isCancelled else {
         NSLog("[ToolCall] Task %@ was cancelled, skipping response", callId)
@@ -64,6 +83,12 @@ class ToolCallRouter {
   }
 
   // MARK: - Private
+
+  /// Check if the task description suggests the user wants to include an image
+  private func taskNeedsImage(_ task: String) -> Bool {
+    let lowercased = task.lowercased()
+    return imageKeywords.contains { lowercased.contains($0) }
+  }
 
   private func buildToolResponse(
     callId: String,

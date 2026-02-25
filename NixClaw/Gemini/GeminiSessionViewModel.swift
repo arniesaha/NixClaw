@@ -18,6 +18,7 @@ class GeminiSessionViewModel: ObservableObject {
   private var toolCallRouter: ToolCallRouter?
   private let audioManager = AudioManager()
   private var lastVideoFrameTime: Date = .distantPast
+  private var lastVideoFrame: UIImage?  // Store for tool calls that need the current view
   private var stateObservation: Task<Void, Never>?
   private var sessionStartTime: Date?
   private var sessionTimer: Task<Void, Never>?
@@ -163,7 +164,8 @@ class GeminiSessionViewModel: ObservableObject {
       guard let self else { return }
       Task { @MainActor in
         for call in toolCall.functionCalls {
-          self.toolCallRouter?.handleToolCall(call) { [weak self] response in
+          // Pass the current video frame so tool calls can include images
+          self.toolCallRouter?.handleToolCall(call, currentFrame: self.lastVideoFrame) { [weak self] response in
             self?.geminiService.sendToolResponse(response)
           }
         }
@@ -295,7 +297,13 @@ class GeminiSessionViewModel: ObservableObject {
     let now = Date()
     guard now.timeIntervalSince(lastVideoFrameTime) >= GeminiConfig.videoFrameInterval else { return }
     lastVideoFrameTime = now
+    lastVideoFrame = image  // Store for tool calls that need the current view
     geminiService.sendVideoFrame(image: image)
+  }
+
+  /// Get the most recent video frame (for tool calls that need to include an image)
+  func getLastVideoFrame() -> UIImage? {
+    return lastVideoFrame
   }
 
   // MARK: - Audio Only Mode (Background-friendly, no video)

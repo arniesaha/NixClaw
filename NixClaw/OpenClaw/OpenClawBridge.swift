@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 @MainActor
 class OpenClawBridge: ObservableObject {
@@ -28,7 +29,8 @@ class OpenClawBridge: ObservableObject {
 
   func delegateTask(
     task: String,
-    toolName: String = "execute"
+    toolName: String = "execute",
+    image: UIImage? = nil
   ) async -> ToolResult {
     lastToolCallStatus = .executing(toolName)
 
@@ -43,10 +45,34 @@ class OpenClawBridge: ObservableObject {
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue(sessionKey, forHTTPHeaderField: "x-openclaw-session-key")
 
+    // Build message content - text only or multimodal with image
+    let messageContent: Any
+    if let image = image,
+       let jpegData = image.jpegData(compressionQuality: 0.8) {
+      // Multimodal message with image
+      let base64Image = jpegData.base64EncodedString()
+      messageContent = [
+        [
+          "type": "image_url",
+          "image_url": [
+            "url": "data:image/jpeg;base64,\(base64Image)"
+          ]
+        ],
+        [
+          "type": "text",
+          "text": task
+        ]
+      ]
+      NSLog("[OpenClaw] Sending multimodal message with image (%d bytes)", jpegData.count)
+    } else {
+      // Text-only message
+      messageContent = task
+    }
+
     let body: [String: Any] = [
       "model": "openclaw",
       "messages": [
-        ["role": "user", "content": task]
+        ["role": "user", "content": messageContent]
       ],
       "stream": false
     ]
