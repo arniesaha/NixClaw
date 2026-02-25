@@ -22,6 +22,9 @@ class GeminiSessionViewModel: ObservableObject {
 
   /// Debug property to check if we have a video frame available
   var hasVideoFrame: Bool { lastVideoFrame != nil }
+
+  /// Debug: was image included in last tool call?
+  @Published var lastToolCallIncludedImage: Bool = false
   private var stateObservation: Task<Void, Never>?
   private var sessionStartTime: Date?
   private var sessionTimer: Task<Void, Never>?
@@ -170,6 +173,9 @@ class GeminiSessionViewModel: ObservableObject {
           // DEBUG: Log frame availability at tool call time
           let frameAvailable = self.lastVideoFrame != nil
           NSLog("[GeminiSession] Tool call received. lastVideoFrame available: %@", frameAvailable ? "YES" : "NO")
+
+          // Update debug indicator
+          self.lastToolCallIncludedImage = frameAvailable
 
           // Pass the current video frame so tool calls can include images
           self.toolCallRouter?.handleToolCall(call, currentFrame: self.lastVideoFrame) { [weak self] response in

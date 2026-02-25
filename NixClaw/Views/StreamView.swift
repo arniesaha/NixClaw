@@ -54,14 +54,17 @@ struct StreamView: View {
         VStack {
           GeminiStatusBar(geminiVM: geminiVM)
 
-          // DEBUG: Show if lastVideoFrame is available
-          Text(geminiVM.hasVideoFrame ? "📷 Frame OK" : "❌ No Frame")
-            .font(.caption)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(geminiVM.hasVideoFrame ? Color.green.opacity(0.7) : Color.red.opacity(0.7))
-            .cornerRadius(8)
-            .foregroundColor(.white)
+          // DEBUG: Show frame and image send status
+          HStack(spacing: 4) {
+            Text(geminiVM.hasVideoFrame ? "📷" : "❌")
+            Text(geminiVM.lastToolCallIncludedImage ? "📤 Sent" : "⏳")
+          }
+          .font(.caption)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(geminiVM.hasVideoFrame && geminiVM.lastToolCallIncludedImage ? Color.green.opacity(0.7) : Color.orange.opacity(0.7))
+          .cornerRadius(8)
+          .foregroundColor(.white)
           Spacer()
 
           VStack(spacing: 8) {
