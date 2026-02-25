@@ -2,7 +2,7 @@ name: Build NixClaw
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/*]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -15,9 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Unlock Keychain
+        run: |
+          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
+
       - name: Resolve Swift packages
         run: |
-          xcodebuild -resolvePackageDependencies             -project NixClaw.xcodeproj             -scheme NixClaw
+          xcodebuild -resolvePackageDependencies \
+            -project NixClaw.xcodeproj \
+            -scheme NixClaw
 
       - name: Create build config
         run: |
@@ -29,13 +36,27 @@ jobs:
           DEFAULT_OPENCLAW_SCHEME = http
           DEFAULT_OPENCLAW_HOSTNAME = 192.168.1.70
           DEFAULT_OPENCLAW_PORT = 18789
-          DEFAULT_OPENCLAW_TOKEN =
+          DEFAULT_OPENCLAW_TOKEN = ${{ secrets.OPENCLAW_TOKEN }}
           EOF
 
-      - name: Build (Debug, iphoneos)
+      - name: Build for Device
         run: |
-          xcodebuild build             -project NixClaw.xcodeproj             -scheme NixClaw             -destination "generic/platform=iOS"             -configuration Debug             CODE_SIGN_IDENTITY="-"             CODE_SIGNING_ALLOWED=NO             | tail -20
+          xcodebuild build \
+            -project NixClaw.xcodeproj \
+            -scheme NixClaw \
+            -destination "platform=iOS,id=00008150-000E22603CC2401C" \
+            -configuration Debug \
+            -derivedDataPath build \
+            | xcbeautify || tail -50
+
+      - name: Install on iPhone
+        run: |
+          APP_PATH=$(find build -name "NixClaw.app" -type d | head -1)
+          echo "Installing: $APP_PATH"
+          xcrun devicectl device install app --device 00008150-000E22603CC2401C "$APP_PATH"
 
       - name: Report
         if: always()
-        run: echo "Build completed at Wed Feb 25 01:41:38 AM PST 2026"
+        run: |
+          echo "Build completed at $(date)"
+          echo "Branch: ${{ github.ref_name }}"
