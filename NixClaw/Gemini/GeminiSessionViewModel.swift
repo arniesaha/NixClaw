@@ -290,14 +290,17 @@ class GeminiSessionViewModel: ObservableObject {
   }
 
   func sendVideoFrameIfThrottled(image: UIImage) {
-    // Skip video frames in audio-only mode or when backgrounded
+    // ALWAYS store the latest frame for tool calls (even if we don't send it to Gemini)
+    // This ensures lastVideoFrame is never nil when a tool call needs an image
+    lastVideoFrame = image
+
+    // Skip sending to Gemini in audio-only mode or when backgrounded
     guard !isAudioOnlyMode else { return }
     guard !isInBackground else { return }
     guard isGeminiActive, connectionState == .ready else { return }
     let now = Date()
     guard now.timeIntervalSince(lastVideoFrameTime) >= GeminiConfig.videoFrameInterval else { return }
     lastVideoFrameTime = now
-    lastVideoFrame = image  // Store for tool calls that need the current view
     geminiService.sendVideoFrame(image: image)
   }
 
