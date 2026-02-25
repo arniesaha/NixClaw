@@ -212,8 +212,8 @@ struct ControlsView: View {
     if geminiVM.isAudioOnlyMode {
       EmptyView()
     } else {
-      // Controls row
-      HStack(spacing: 8) {
+      // Controls row - simplified: just stop streaming and camera
+      HStack(spacing: 12) {
         CustomButton(
           title: "Stop streaming",
           style: .destructive,
@@ -228,20 +228,6 @@ struct ControlsView: View {
         if viewModel.streamingMode == .glasses {
           CircleButton(icon: "camera.fill", text: nil) {
             viewModel.capturePhoto()
-          }
-        }
-
-        // Gemini AI button
-        CircleButton(
-          icon: geminiVM.isGeminiActive ? "waveform.circle.fill" : "waveform.circle",
-          text: "AI"
-        ) {
-          Task {
-            if geminiVM.isGeminiActive {
-              geminiVM.stopSession()
-            } else {
-              await geminiVM.startSession()
-            }
           }
         }
       }
