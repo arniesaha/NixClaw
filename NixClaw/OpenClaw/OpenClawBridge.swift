@@ -4,6 +4,7 @@ import UIKit
 @MainActor
 class OpenClawBridge: ObservableObject {
   @Published var lastToolCallStatus: ToolCallStatus = .idle
+  @Published var debugImageReachedDelegateTask: Bool = false  // DEBUG: did image reach delegateTask?
 
   private let session: URLSession
   private var sessionKey: String
@@ -47,6 +48,9 @@ class OpenClawBridge: ObservableObject {
 
     // Build message content - text only or multimodal with image
     NSLog("[OpenClaw] delegateTask called. image param is: %@", image != nil ? "NOT NIL" : "NIL")
+
+    // DEBUG: Update published property so UI can show it
+    await MainActor.run { self.debugImageReachedDelegateTask = (image != nil) }
 
     let messageContent: Any
     if let image = image {

@@ -54,15 +54,18 @@ struct StreamView: View {
         VStack {
           GeminiStatusBar(geminiVM: geminiVM)
 
-          // DEBUG: Show frame and image send status
-          HStack(spacing: 4) {
-            Text(geminiVM.hasVideoFrame ? "📷" : "❌")
-            Text(geminiVM.lastToolCallIncludedImage ? "📤 Sent" : "⏳")
+          // DEBUG: Show frame status at each stage
+          VStack(spacing: 2) {
+            HStack(spacing: 4) {
+              Text("Frame: \(geminiVM.hasVideoFrame ? "✅" : "❌")")
+              Text("Handler: \(geminiVM.lastToolCallIncludedImage ? "✅" : "❌")")
+            }
+            Text("Bridge: \(geminiVM.openClawBridge.debugImageReachedDelegateTask ? "✅" : "❌")")
           }
-          .font(.caption)
+          .font(.system(size: 10))
           .padding(.horizontal, 8)
           .padding(.vertical, 4)
-          .background(geminiVM.hasVideoFrame && geminiVM.lastToolCallIncludedImage ? Color.green.opacity(0.7) : Color.orange.opacity(0.7))
+          .background(Color.black.opacity(0.7))
           .cornerRadius(8)
           .foregroundColor(.white)
           Spacer()

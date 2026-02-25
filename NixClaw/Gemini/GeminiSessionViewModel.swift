@@ -14,7 +14,7 @@ class GeminiSessionViewModel: ObservableObject {
   @Published var sessionDuration: TimeInterval = 0
   @Published var isAudioOnlyMode: Bool = false
   private let geminiService = GeminiLiveService()
-  private let openClawBridge = OpenClawBridge()
+  // openClawBridge is now exposed via computed property (see below)
   private var toolCallRouter: ToolCallRouter?
   private let audioManager = AudioManager()
   private var lastVideoFrameTime: Date = .distantPast
@@ -25,6 +25,10 @@ class GeminiSessionViewModel: ObservableObject {
 
   /// Debug: was image included in last tool call?
   @Published var lastToolCallIncludedImage: Bool = false
+
+  /// Debug: expose bridge for UI debug indicators
+  var openClawBridge: OpenClawBridge { _openClawBridge }
+  private let _openClawBridge = OpenClawBridge()
   private var stateObservation: Task<Void, Never>?
   private var sessionStartTime: Date?
   private var sessionTimer: Task<Void, Never>?
@@ -161,10 +165,10 @@ class GeminiSessionViewModel: ObservableObject {
     }
 
     // New OpenClaw session per Gemini session (fresh context, no stale memory)
-    openClawBridge.resetSession()
+    _openClawBridge.resetSession()
 
     // Wire tool call handling
-    toolCallRouter = ToolCallRouter(bridge: openClawBridge)
+    toolCallRouter = ToolCallRouter(bridge: _openClawBridge)
 
     geminiService.onToolCall = { [weak self] toolCall in
       guard let self else { return }
