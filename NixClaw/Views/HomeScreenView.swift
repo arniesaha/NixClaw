@@ -29,7 +29,7 @@ struct HomeScreenView: View {
 
   var body: some View {
     ZStack {
-      Color.white.edgesIgnoringSafeArea(.all)
+      Color(red: 0.08, green: 0.08, blue: 0.10).edgesIgnoringSafeArea(.all)
 
       VStack(spacing: 12) {
         HStack {
@@ -40,7 +40,7 @@ struct HomeScreenView: View {
             Image(systemName: "gearshape")
               .resizable()
               .aspectRatio(contentMode: .fit)
-              .foregroundColor(.gray)
+              .foregroundColor(Color(white: 0.6))
               .frame(width: 22, height: 22)
           }
         }
@@ -55,7 +55,7 @@ struct HomeScreenView: View {
 
         Text("NixClaw")
           .font(.system(size: 28, weight: .bold))
-          .foregroundColor(.black)
+          .foregroundColor(.white)
 
         Text("Your AI assistant — through glasses, phone, or just voice")
           .font(.system(size: 15))
@@ -85,16 +85,8 @@ struct HomeScreenView: View {
 
         VStack(spacing: 12) {
           CustomButton(
-            title: viewModel.registrationState == .registering ? "Connecting..." : "Connect Glasses",
-            style: .primary,
-            isDisabled: viewModel.registrationState == .registering
-          ) {
-            viewModel.connectGlasses()
-          }
-
-          CustomButton(
             title: "Audio Only",
-            style: .secondary,
+            style: .primary,
             isDisabled: false
           ) {
             onSelectAudioOnly()
@@ -106,6 +98,14 @@ struct HomeScreenView: View {
             isDisabled: false
           ) {
             onSelectiPhoneCamera()
+          }
+
+          CustomButton(
+            title: viewModel.registrationState == .registering ? "Connecting..." : "Connect Glasses",
+            style: .secondary,
+            isDisabled: viewModel.registrationState == .registering
+          ) {
+            viewModel.connectGlasses()
           }
         }
       }
@@ -140,7 +140,7 @@ struct HomeTipItemView: View {
       Image(resource)
         .resizable()
         .renderingMode(.template)
-        .foregroundColor(.black)
+        .foregroundColor(.white)
         .aspectRatio(contentMode: .fit)
         .frame(width: 24)
         .padding(.leading, 4)
@@ -149,7 +149,7 @@ struct HomeTipItemView: View {
       VStack(alignment: .leading, spacing: 6) {
         Text(title)
           .font(.system(size: 18, weight: .semibold))
-          .foregroundColor(.black)
+          .foregroundColor(.white)
 
         Text(text)
           .font(.system(size: 15))
