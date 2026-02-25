@@ -34,20 +34,12 @@ class ToolCallRouter {
     let task = Task { @MainActor in
       let taskDesc = call.args["task"] as? String ?? String(describing: call.args)
 
-      // Check if this task wants an image included
-      let taskWantsImage = self.taskNeedsImage(taskDesc)
+      // DEBUG: ALWAYS include image if we have one (bypass keyword check)
       let hasFrame = currentFrame != nil
-      let shouldIncludeImage = taskWantsImage && hasFrame
-      let imageToSend = shouldIncludeImage ? currentFrame : nil
+      let imageToSend = currentFrame  // Always send if available
 
-      NSLog("[ToolCall] taskWantsImage=%d, hasFrame=%d, shouldInclude=%d",
-            taskWantsImage ? 1 : 0, hasFrame ? 1 : 0, shouldIncludeImage ? 1 : 0)
-
-      if shouldIncludeImage {
-        NSLog("[ToolCall] Including current video frame with task")
-      } else if taskWantsImage && !hasFrame {
-        NSLog("[ToolCall] WARNING: Task wants image but no frame available!")
-      }
+      NSLog("[ToolCall] FORCE INCLUDE IMAGE: hasFrame=%d, imageToSend is %@",
+            hasFrame ? 1 : 0, imageToSend != nil ? "NOT NIL" : "NIL")
 
       let result = await bridge.delegateTask(task: taskDesc, toolName: callName, image: imageToSend)
 
