@@ -19,6 +19,9 @@ class GeminiSessionViewModel: ObservableObject {
   private let audioManager = AudioManager()
   private var lastVideoFrameTime: Date = .distantPast
   private var lastVideoFrame: UIImage?  // Store for tool calls that need the current view
+
+  /// Debug property to check if we have a video frame available
+  var hasVideoFrame: Bool { lastVideoFrame != nil }
   private var stateObservation: Task<Void, Never>?
   private var sessionStartTime: Date?
   private var sessionTimer: Task<Void, Never>?

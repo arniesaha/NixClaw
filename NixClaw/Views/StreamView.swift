@@ -53,6 +53,15 @@ struct StreamView: View {
       if geminiVM.isGeminiActive && !geminiVM.isAudioOnlyMode {
         VStack {
           GeminiStatusBar(geminiVM: geminiVM)
+
+          // DEBUG: Show if lastVideoFrame is available
+          Text(geminiVM.hasVideoFrame ? "📷 Frame OK" : "❌ No Frame")
+            .font(.caption)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(geminiVM.hasVideoFrame ? Color.green.opacity(0.7) : Color.red.opacity(0.7))
+            .cornerRadius(8)
+            .foregroundColor(.white)
           Spacer()
 
           VStack(spacing: 8) {
