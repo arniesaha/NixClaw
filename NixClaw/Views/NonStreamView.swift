@@ -91,7 +91,7 @@ struct NonStreamView: View {
         .opacity(viewModel.hasActiveDevice ? 0 : 1)
 
         CustomButton(
-          title: "Audio Only (Background)",
+          title: "Start Audio",
           style: .secondary,
           isDisabled: false
         ) {
