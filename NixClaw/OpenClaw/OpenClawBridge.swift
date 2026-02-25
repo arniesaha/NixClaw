@@ -55,21 +55,23 @@ class OpenClawBridge: ObservableObject {
     let messageContent: Any
     if let image = image {
       NSLog("[OpenClaw] Image exists, attempting JPEG encoding...")
-      if let jpegData = image.jpegData(compressionQuality: 0.8) {
-        // Multimodal message with image
+      if let jpegData = image.jpegData(compressionQuality: 0.7) {
+        // Multimodal message with image - using Anthropic's native format
         let base64Image = jpegData.base64EncodedString()
         NSLog("[OpenClaw] JPEG encoding SUCCESS. Size: %d bytes, base64 length: %d", jpegData.count, base64Image.count)
         messageContent = [
           [
-            "type": "image_url",
-            "image_url": [
-              "url": "data:image/jpeg;base64,\(base64Image)"
-            ]
-          ],
+            "type": "image",
+            "source": [
+              "type": "base64",
+              "media_type": "image/jpeg",
+              "data": base64Image
+            ] as [String: Any]
+          ] as [String: Any],
           [
             "type": "text",
             "text": task
-          ]
+          ] as [String: Any]
         ]
       } else {
         NSLog("[OpenClaw] ERROR: JPEG encoding FAILED!")
