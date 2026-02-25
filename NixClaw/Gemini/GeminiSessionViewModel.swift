@@ -167,6 +167,10 @@ class GeminiSessionViewModel: ObservableObject {
       guard let self else { return }
       Task { @MainActor in
         for call in toolCall.functionCalls {
+          // DEBUG: Log frame availability at tool call time
+          let frameAvailable = self.lastVideoFrame != nil
+          NSLog("[GeminiSession] Tool call received. lastVideoFrame available: %@", frameAvailable ? "YES" : "NO")
+
           // Pass the current video frame so tool calls can include images
           self.toolCallRouter?.handleToolCall(call, currentFrame: self.lastVideoFrame) { [weak self] response in
             self?.geminiService.sendToolResponse(response)

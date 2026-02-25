@@ -46,25 +46,33 @@ class OpenClawBridge: ObservableObject {
     request.setValue(sessionKey, forHTTPHeaderField: "x-openclaw-session-key")
 
     // Build message content - text only or multimodal with image
+    NSLog("[OpenClaw] delegateTask called. image param is: %@", image != nil ? "NOT NIL" : "NIL")
+
     let messageContent: Any
-    if let image = image,
-       let jpegData = image.jpegData(compressionQuality: 0.8) {
-      // Multimodal message with image
-      let base64Image = jpegData.base64EncodedString()
-      messageContent = [
-        [
-          "type": "image_url",
-          "image_url": [
-            "url": "data:image/jpeg;base64,\(base64Image)"
+    if let image = image {
+      NSLog("[OpenClaw] Image exists, attempting JPEG encoding...")
+      if let jpegData = image.jpegData(compressionQuality: 0.8) {
+        // Multimodal message with image
+        let base64Image = jpegData.base64EncodedString()
+        NSLog("[OpenClaw] JPEG encoding SUCCESS. Size: %d bytes, base64 length: %d", jpegData.count, base64Image.count)
+        messageContent = [
+          [
+            "type": "image_url",
+            "image_url": [
+              "url": "data:image/jpeg;base64,\(base64Image)"
+            ]
+          ],
+          [
+            "type": "text",
+            "text": task
           ]
-        ],
-        [
-          "type": "text",
-          "text": task
         ]
-      ]
-      NSLog("[OpenClaw] Sending multimodal message with image (%d bytes)", jpegData.count)
+      } else {
+        NSLog("[OpenClaw] ERROR: JPEG encoding FAILED!")
+        messageContent = task
+      }
     } else {
+      NSLog("[OpenClaw] No image provided, sending text-only message")
       // Text-only message
       messageContent = task
     }
