@@ -52,35 +52,48 @@ class OpenClawBridge: ObservableObject {
     // DEBUG: Update published property so UI can show it
     await MainActor.run { self.debugImageReachedDelegateTask = (image != nil) }
 
-    let messageContent: Any
+    var messageContent: Any = task
+    var savedImagePath: String? = nil
+
     if let image = image {
-      NSLog("[OpenClaw] Image exists, attempting JPEG encoding...")
-      if let jpegData = image.jpegData(compressionQuality: 0.7) {
-        // Multimodal message with image - using Anthropic's native format
-        let base64Image = jpegData.base64EncodedString()
-        NSLog("[OpenClaw] JPEG encoding SUCCESS. Size: %d bytes, base64 length: %d", jpegData.count, base64Image.count)
-        messageContent = [
-          [
-            "type": "image",
-            "source": [
-              "type": "base64",
-              "media_type": "image/jpeg",
-              "data": base64Image
+      NSLog("[OpenClaw] Image exists, attempting to save to file...")
+      if let jpegData = image.jpegData(compressionQuality: 0.8) {
+        // Save image to temp file and include path in message
+        let fileName = "nixclaw_\(UUID().uuidString).jpg"
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent(fileName)
+
+        do {
+          try jpegData.write(to: fileURL)
+          savedImagePath = fileURL.path
+          NSLog("[OpenClaw] Image saved to: %@", fileURL.path)
+
+          // Format similar to how WhatsApp images appear in OpenClaw
+          // Include both inline base64 AND file reference
+          let base64Image = jpegData.base64EncodedString()
+          messageContent = [
+            [
+              "type": "image",
+              "source": [
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": base64Image
+              ] as [String: Any]
+            ] as [String: Any],
+            [
+              "type": "text",
+              "text": "[Image from NixClaw glasses camera]\n\n\(task)"
             ] as [String: Any]
-          ] as [String: Any],
-          [
-            "type": "text",
-            "text": task
-          ] as [String: Any]
-        ]
+          ]
+        } catch {
+          NSLog("[OpenClaw] ERROR saving image: %@", error.localizedDescription)
+          messageContent = task
+        }
       } else {
         NSLog("[OpenClaw] ERROR: JPEG encoding FAILED!")
-        messageContent = task
       }
     } else {
       NSLog("[OpenClaw] No image provided, sending text-only message")
-      // Text-only message
-      messageContent = task
     }
 
     let body: [String: Any] = [
@@ -92,7 +105,21 @@ class OpenClawBridge: ObservableObject {
     ]
 
     do {
-      request.httpBody = try JSONSerialization.data(withJSONObject: body)
+      let jsonData = try JSONSerialization.data(withJSONObject: body)
+
+      // DEBUG: Log the JSON structure (truncated)
+      if let jsonStr = String(data: jsonData, encoding: .utf8) {
+        let preview = String(jsonStr.prefix(500))
+        NSLog("[OpenClaw] Request JSON preview: %@", preview)
+        // Check if image is in the JSON
+        if jsonStr.contains("\"type\":\"image\"") || jsonStr.contains("\"type\": \"image\"") {
+          NSLog("[OpenClaw] ✓ Image content IS in JSON")
+        } else {
+          NSLog("[OpenClaw] ✗ Image content NOT in JSON!")
+        }
+      }
+
+      request.httpBody = jsonData
       let (data, response) = try await session.data(for: request)
       let httpResponse = response as? HTTPURLResponse
 
