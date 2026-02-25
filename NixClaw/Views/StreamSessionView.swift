@@ -40,10 +40,13 @@ struct StreamSessionView: View {
         NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel, geminiVM: geminiVM)
       }
     }
-    .task {
+    .onAppear {
+      // CRITICAL: Connect view models synchronously before any async work
+      // This ensures geminiSessionVM is set before video frames start flowing
       viewModel.geminiSessionVM = geminiVM
       geminiVM.streamingMode = viewModel.streamingMode
-
+    }
+    .task {
       // Auto-launch the selected mode from home screen
       if let mode = initialMode {
         switch mode {
