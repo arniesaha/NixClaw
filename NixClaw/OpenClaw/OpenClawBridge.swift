@@ -68,21 +68,19 @@ class OpenClawBridge: ObservableObject {
           savedImagePath = fileURL.path
           NSLog("[OpenClaw] Image saved to: %@", fileURL.path)
 
-          // Format similar to how WhatsApp images appear in OpenClaw
-          // Include both inline base64 AND file reference
+          // Use OpenAI Vision API format (OpenClaw gateway expects this)
           let base64Image = jpegData.base64EncodedString()
+          let dataUrl = "data:image/jpeg;base64,\(base64Image)"
           messageContent = [
             [
-              "type": "image",
-              "source": [
-                "type": "base64",
-                "media_type": "image/jpeg",
-                "data": base64Image
+              "type": "image_url",
+              "image_url": [
+                "url": dataUrl
               ] as [String: Any]
             ] as [String: Any],
             [
               "type": "text",
-              "text": "[Image from NixClaw glasses camera]\n\n\(task)"
+              "text": task
             ] as [String: Any]
           ]
         } catch {
@@ -111,9 +109,11 @@ class OpenClawBridge: ObservableObject {
       if let jsonStr = String(data: jsonData, encoding: .utf8) {
         let preview = String(jsonStr.prefix(500))
         NSLog("[OpenClaw] Request JSON preview: %@", preview)
-        // Check if image is in the JSON
-        if jsonStr.contains("\"type\":\"image\"") || jsonStr.contains("\"type\": \"image\"") {
-          NSLog("[OpenClaw] ✓ Image content IS in JSON")
+        // Check if image is in the JSON (OpenAI format uses image_url)
+        if jsonStr.contains("\"type\":\"image_url\"") || jsonStr.contains("\"type\": \"image_url\"") {
+          NSLog("[OpenClaw] ✓ Image content IS in JSON (OpenAI format)")
+        } else if jsonStr.contains("data:image") {
+          NSLog("[OpenClaw] ✓ Image data URL found in JSON")
         } else {
           NSLog("[OpenClaw] ✗ Image content NOT in JSON!")
         }
