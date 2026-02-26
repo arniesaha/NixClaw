@@ -57,7 +57,7 @@ class OpenClawBridge: ObservableObject {
 
     if let image = image {
       NSLog("[OpenClaw] Image exists, attempting to save to file...")
-      if let jpegData = image.jpegData(compressionQuality: 0.8) {
+      if let jpegData = image.jpegData(compressionQuality: 0.7) {
         // Save image to temp file and include path in message
         let fileName = "nixclaw_\(UUID().uuidString).jpg"
         let tempDir = FileManager.default.temporaryDirectory
@@ -68,14 +68,15 @@ class OpenClawBridge: ObservableObject {
           savedImagePath = fileURL.path
           NSLog("[OpenClaw] Image saved to: %@", fileURL.path)
 
-          // Use OpenAI Vision API format (OpenClaw gateway expects this)
+          // Use Anthropic native format (OpenClaw passes this to Claude)
           let base64Image = jpegData.base64EncodedString()
-          let dataUrl = "data:image/jpeg;base64,\(base64Image)"
           messageContent = [
             [
-              "type": "image_url",
-              "image_url": [
-                "url": dataUrl
+              "type": "image",
+              "source": [
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": base64Image
               ] as [String: Any]
             ] as [String: Any],
             [
@@ -109,9 +110,9 @@ class OpenClawBridge: ObservableObject {
       if let jsonStr = String(data: jsonData, encoding: .utf8) {
         let preview = String(jsonStr.prefix(500))
         NSLog("[OpenClaw] Request JSON preview: %@", preview)
-        // Check if image is in the JSON (OpenAI format uses image_url)
-        if jsonStr.contains("\"type\":\"image_url\"") || jsonStr.contains("\"type\": \"image_url\"") {
-          NSLog("[OpenClaw] ✓ Image content IS in JSON (OpenAI format)")
+        // Check if image is in the JSON (Anthropic format uses image)
+        if jsonStr.contains("\"type\":\"image\"") || jsonStr.contains("\"type\": \"image\"") {
+          NSLog("[OpenClaw] ✓ Image content IS in JSON (Anthropic format)")
         } else if jsonStr.contains("data:image") {
           NSLog("[OpenClaw] ✓ Image data URL found in JSON")
         } else {
