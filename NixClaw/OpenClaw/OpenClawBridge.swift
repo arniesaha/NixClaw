@@ -8,10 +8,6 @@ class OpenClawBridge: ObservableObject {
 
   private let session: URLSession
   private var sessionKey: String
-  
-  // Upload server config
-  private let uploadBaseURL: String
-  private let uploadToken: String
 
   init() {
     let config = URLSessionConfiguration.default
@@ -19,17 +15,7 @@ class OpenClawBridge: ObservableObject {
     self.session = URLSession(configuration: config)
     self.sessionKey = OpenClawBridge.newSessionKey()
     
-    // Upload server on NAS (same host as OpenClaw gateway, different port)
-    // Extract base URL from gateway URL and use upload port
-    let gatewayURL = AppConfig.shared.openClawBaseURL
-    if let url = URL(string: gatewayURL), let host = url.host {
-      let scheme = url.scheme ?? "http"
-      self.uploadBaseURL = "\(scheme)://\(host):18795"
-    } else {
-      self.uploadBaseURL = "http://arnabsnas.tailb3dd58.ts.net:18795"
-    }
-    self.uploadToken = "nixclaw-upload-secret"
-    NSLog("[OpenClaw] Upload server: %@", uploadBaseURL)
+    NSLog("[OpenClaw] Upload server: %@", AppConfig.shared.uploadServerURL)
   }
 
   func resetSession() {
@@ -51,14 +37,15 @@ class OpenClawBridge: ObservableObject {
       return nil
     }
     
-    guard let url = URL(string: "\(uploadBaseURL)/upload") else {
-      NSLog("[OpenClaw] Invalid upload URL")
+    let uploadURL = "\(AppConfig.shared.uploadServerURL)/upload"
+    guard let url = URL(string: uploadURL) else {
+      NSLog("[OpenClaw] Invalid upload URL: %@", uploadURL)
       return nil
     }
     
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
-    request.setValue("Bearer \(uploadToken)", forHTTPHeaderField: "Authorization")
+    request.setValue("Bearer \(AppConfig.shared.uploadServerToken)", forHTTPHeaderField: "Authorization")
     request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
     request.httpBody = jpegData
     

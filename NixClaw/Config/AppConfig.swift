@@ -40,6 +40,14 @@ class AppConfig: ObservableObject {
     didSet { UserDefaults.standard.set(openClawToken, forKey: "openClawToken") }
   }
 
+  @Published var uploadServerPort: Int {
+    didSet { UserDefaults.standard.set(uploadServerPort, forKey: "uploadServerPort") }
+  }
+
+  @Published var uploadServerToken: String {
+    didSet { UserDefaults.standard.set(uploadServerToken, forKey: "uploadServerToken") }
+  }
+
   // MARK: - Computed properties
 
   /// Display name of the app (from bundle, not runtime-changeable).
@@ -61,6 +69,12 @@ class AppConfig: ObservableObject {
     return "\(scheme)://\(openClawHostname):\(openClawPort)"
   }
 
+  /// Upload server URL (same host as OpenClaw, different port)
+  var uploadServerURL: String {
+    let scheme = openClawScheme.isEmpty ? "http" : openClawScheme
+    return "\(scheme)://\(openClawHostname):\(uploadServerPort)"
+  }
+
   // MARK: - Init
 
   private init() {
@@ -71,12 +85,14 @@ class AppConfig: ObservableObject {
     openClawHostname = AppConfig.load("openClawHostname", plistKey: "DefaultOpenClawHostname", fallback: "")
     openClawPort = AppConfig.loadInt("openClawPort", plistKey: "DefaultOpenClawPort", fallback: 18789)
     openClawToken = AppConfig.load("openClawToken", plistKey: "DefaultOpenClawToken", fallback: "")
+    uploadServerPort = AppConfig.loadInt("uploadServerPort", plistKey: "DefaultUploadServerPort", fallback: 18795)
+    uploadServerToken = AppConfig.load("uploadServerToken", plistKey: "DefaultUploadServerToken", fallback: "nixclaw-upload-secret")
   }
 
   // MARK: - Reset
 
   func resetToDefaults() {
-    let keys = ["assistantName", "accentColorHex", "geminiApiKey", "openClawScheme", "openClawHostname", "openClawPort", "openClawToken"]
+    let keys = ["assistantName", "accentColorHex", "geminiApiKey", "openClawScheme", "openClawHostname", "openClawPort", "openClawToken", "uploadServerPort", "uploadServerToken"]
     keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
 
     assistantName = AppConfig.load("assistantName", plistKey: "DefaultAssistantName", fallback: "Assistant")
@@ -86,6 +102,8 @@ class AppConfig: ObservableObject {
     openClawHostname = AppConfig.load("openClawHostname", plistKey: "DefaultOpenClawHostname", fallback: "")
     openClawPort = AppConfig.loadInt("openClawPort", plistKey: "DefaultOpenClawPort", fallback: 18789)
     openClawToken = AppConfig.load("openClawToken", plistKey: "DefaultOpenClawToken", fallback: "")
+    uploadServerPort = AppConfig.loadInt("uploadServerPort", plistKey: "DefaultUploadServerPort", fallback: 18795)
+    uploadServerToken = AppConfig.load("uploadServerToken", plistKey: "DefaultUploadServerToken", fallback: "nixclaw-upload-secret")
   }
 
   // MARK: - Helpers
