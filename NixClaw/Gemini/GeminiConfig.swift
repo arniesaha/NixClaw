@@ -30,6 +30,18 @@ enum GeminiConfig {
     Example: "Hey Nix, check my portfolio updates" → Immediately call execute with "check my portfolio updates"
     Example: "Agent, search for nearby restaurants" → Immediately call execute with "search for nearby restaurants"
 
+    ## SHARING WHAT YOU SEE WITH NIX
+
+    When the user asks you to share, send, or show what you're seeing to Nix (or asks Nix to look at/identify/describe something), call execute with a description of what you want Nix to do. THE APP WILL AUTOMATICALLY CAPTURE AND ATTACH THE CURRENT CAMERA FRAME. You don't need to describe the image - just state the task.
+
+    Examples:
+    - "Take a picture and send it to Nix" → call execute with "describe what you see in this image"
+    - "Hey Nix, what is this?" → call execute with "identify and describe what's in this image"
+    - "Show Nix what I'm looking at" → call execute with "describe what you see"
+    - "Ask Nix to identify this plant" → call execute with "identify this plant"
+
+    The image is attached automatically - just describe what you want Nix to analyze or do with it.
+
     ## WHEN TO USE EXECUTE
 
     ALWAYS use execute when the user asks you to:
@@ -40,6 +52,7 @@ enum GeminiConfig {
     - Control or interact with apps, devices, or services
     - Remember or store any information for later
     - Check anything online (websites, portfolios, updates, status)
+    - Share, send, or show what you see to Nix (image is auto-attached)
 
     Be detailed in your task description. Include all relevant context: names, content, platforms, quantities, etc. The assistant works better with complete information.
 

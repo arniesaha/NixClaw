@@ -153,6 +153,10 @@ class StreamSessionViewModel: ObservableObject {
 
   func startSession() async {
     await streamSession.start()
+    // Auto-start Gemini AI when streaming starts
+    if let gemini = geminiSessionVM, !gemini.isGeminiActive {
+      await gemini.startSession()
+    }
   }
 
   private func showError(_ message: String) {
@@ -161,6 +165,11 @@ class StreamSessionViewModel: ObservableObject {
   }
 
   func stopSession() async {
+    // Auto-stop Gemini AI when streaming stops
+    if let gemini = geminiSessionVM, gemini.isGeminiActive {
+      gemini.stopSession()
+    }
+
     if streamingMode == .iPhone {
       stopIPhoneSession()
       return
@@ -205,6 +214,13 @@ class StreamSessionViewModel: ObservableObject {
     }
 
     NSLog("[Stream] iPhone camera mode started")
+
+    // Auto-start Gemini AI when streaming starts
+    Task {
+      if let gemini = geminiSessionVM, !gemini.isGeminiActive {
+        await gemini.startSession()
+      }
+    }
   }
 
   private func stopIPhoneSession() {

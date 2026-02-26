@@ -14,10 +14,21 @@ class GeminiSessionViewModel: ObservableObject {
   @Published var sessionDuration: TimeInterval = 0
   @Published var isAudioOnlyMode: Bool = false
   private let geminiService = GeminiLiveService()
-  private let openClawBridge = OpenClawBridge()
+  // openClawBridge is now exposed via computed property (see below)
   private var toolCallRouter: ToolCallRouter?
   private let audioManager = AudioManager()
   private var lastVideoFrameTime: Date = .distantPast
+  private var lastVideoFrame: UIImage?  // Store for tool calls that need the current view
+
+  /// Debug property to check if we have a video frame available
+  var hasVideoFrame: Bool { lastVideoFrame != nil }
+
+  /// Debug: was image included in last tool call?
+  @Published var lastToolCallIncludedImage: Bool = false
+
+  /// Debug: expose bridge for UI debug indicators
+  var openClawBridge: OpenClawBridge { _openClawBridge }
+  private let _openClawBridge = OpenClawBridge()
   private var stateObservation: Task<Void, Never>?
   private var sessionStartTime: Date?
   private var sessionTimer: Task<Void, Never>?
@@ -154,16 +165,24 @@ class GeminiSessionViewModel: ObservableObject {
     }
 
     // New OpenClaw session per Gemini session (fresh context, no stale memory)
-    openClawBridge.resetSession()
+    _openClawBridge.resetSession()
 
     // Wire tool call handling
-    toolCallRouter = ToolCallRouter(bridge: openClawBridge)
+    toolCallRouter = ToolCallRouter(bridge: _openClawBridge)
 
     geminiService.onToolCall = { [weak self] toolCall in
       guard let self else { return }
       Task { @MainActor in
         for call in toolCall.functionCalls {
-          self.toolCallRouter?.handleToolCall(call) { [weak self] response in
+          // DEBUG: Log frame availability at tool call time
+          let frameAvailable = self.lastVideoFrame != nil
+          NSLog("[GeminiSession] Tool call received. lastVideoFrame available: %@", frameAvailable ? "YES" : "NO")
+
+          // Update debug indicator
+          self.lastToolCallIncludedImage = frameAvailable
+
+          // Pass the current video frame so tool calls can include images
+          self.toolCallRouter?.handleToolCall(call, currentFrame: self.lastVideoFrame) { [weak self] response in
             self?.geminiService.sendToolResponse(response)
           }
         }
@@ -288,7 +307,11 @@ class GeminiSessionViewModel: ObservableObject {
   }
 
   func sendVideoFrameIfThrottled(image: UIImage) {
-    // Skip video frames in audio-only mode or when backgrounded
+    // ALWAYS store the latest frame for tool calls (even if we don't send it to Gemini)
+    // This ensures lastVideoFrame is never nil when a tool call needs an image
+    lastVideoFrame = image
+
+    // Skip sending to Gemini in audio-only mode or when backgrounded
     guard !isAudioOnlyMode else { return }
     guard !isInBackground else { return }
     guard isGeminiActive, connectionState == .ready else { return }
@@ -296,6 +319,11 @@ class GeminiSessionViewModel: ObservableObject {
     guard now.timeIntervalSince(lastVideoFrameTime) >= GeminiConfig.videoFrameInterval else { return }
     lastVideoFrameTime = now
     geminiService.sendVideoFrame(image: image)
+  }
+
+  /// Get the most recent video frame (for tool calls that need to include an image)
+  func getLastVideoFrame() -> UIImage? {
+    return lastVideoFrame
   }
 
   // MARK: - Audio Only Mode (Background-friendly, no video)

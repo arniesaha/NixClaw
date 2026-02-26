@@ -53,6 +53,21 @@ struct StreamView: View {
       if geminiVM.isGeminiActive && !geminiVM.isAudioOnlyMode {
         VStack {
           GeminiStatusBar(geminiVM: geminiVM)
+
+          // DEBUG: Show frame status at each stage
+          VStack(spacing: 2) {
+            HStack(spacing: 4) {
+              Text("Frame: \(geminiVM.hasVideoFrame ? "✅" : "❌")")
+              Text("Handler: \(geminiVM.lastToolCallIncludedImage ? "✅" : "❌")")
+            }
+            Text("Bridge: \(geminiVM.openClawBridge.debugImageReachedDelegateTask ? "✅" : "❌")")
+          }
+          .font(.system(size: 10))
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(Color.black.opacity(0.7))
+          .cornerRadius(8)
+          .foregroundColor(.white)
           Spacer()
 
           VStack(spacing: 8) {
@@ -212,8 +227,8 @@ struct ControlsView: View {
     if geminiVM.isAudioOnlyMode {
       EmptyView()
     } else {
-      // Controls row
-      HStack(spacing: 8) {
+      // Controls row - simplified: just stop streaming and camera
+      HStack(spacing: 12) {
         CustomButton(
           title: "Stop streaming",
           style: .destructive,
@@ -228,20 +243,6 @@ struct ControlsView: View {
         if viewModel.streamingMode == .glasses {
           CircleButton(icon: "camera.fill", text: nil) {
             viewModel.capturePhoto()
-          }
-        }
-
-        // Gemini AI button
-        CircleButton(
-          icon: geminiVM.isGeminiActive ? "waveform.circle.fill" : "waveform.circle",
-          text: "AI"
-        ) {
-          Task {
-            if geminiVM.isGeminiActive {
-              geminiVM.stopSession()
-            } else {
-              await geminiVM.startSession()
-            }
           }
         }
       }

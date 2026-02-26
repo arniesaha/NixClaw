@@ -1,8 +1,10 @@
 import Foundation
+import UIKit
 
 @MainActor
 class OpenClawBridge: ObservableObject {
   @Published var lastToolCallStatus: ToolCallStatus = .idle
+  @Published var debugImageReachedDelegateTask: Bool = false  // DEBUG: did image reach delegateTask?
 
   private let session: URLSession
   private var sessionKey: String
@@ -28,7 +30,8 @@ class OpenClawBridge: ObservableObject {
 
   func delegateTask(
     task: String,
-    toolName: String = "execute"
+    toolName: String = "execute",
+    image: UIImage? = nil
   ) async -> ToolResult {
     lastToolCallStatus = .executing(toolName)
 
@@ -43,16 +46,80 @@ class OpenClawBridge: ObservableObject {
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue(sessionKey, forHTTPHeaderField: "x-openclaw-session-key")
 
+    // Build message content - text only or multimodal with image
+    NSLog("[OpenClaw] delegateTask called. image param is: %@", image != nil ? "NOT NIL" : "NIL")
+
+    // DEBUG: Update published property so UI can show it
+    await MainActor.run { self.debugImageReachedDelegateTask = (image != nil) }
+
+    var messageContent: Any = task
+    var savedImagePath: String? = nil
+
+    if let image = image {
+      NSLog("[OpenClaw] Image exists, attempting to save to file...")
+      if let jpegData = image.jpegData(compressionQuality: 0.8) {
+        // Save image to temp file and include path in message
+        let fileName = "nixclaw_\(UUID().uuidString).jpg"
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent(fileName)
+
+        do {
+          try jpegData.write(to: fileURL)
+          savedImagePath = fileURL.path
+          NSLog("[OpenClaw] Image saved to: %@", fileURL.path)
+
+          // Use OpenAI Vision API format (OpenClaw gateway expects this)
+          let base64Image = jpegData.base64EncodedString()
+          let dataUrl = "data:image/jpeg;base64,\(base64Image)"
+          messageContent = [
+            [
+              "type": "image_url",
+              "image_url": [
+                "url": dataUrl
+              ] as [String: Any]
+            ] as [String: Any],
+            [
+              "type": "text",
+              "text": task
+            ] as [String: Any]
+          ]
+        } catch {
+          NSLog("[OpenClaw] ERROR saving image: %@", error.localizedDescription)
+          messageContent = task
+        }
+      } else {
+        NSLog("[OpenClaw] ERROR: JPEG encoding FAILED!")
+      }
+    } else {
+      NSLog("[OpenClaw] No image provided, sending text-only message")
+    }
+
     let body: [String: Any] = [
       "model": "openclaw",
       "messages": [
-        ["role": "user", "content": task]
+        ["role": "user", "content": messageContent]
       ],
       "stream": false
     ]
 
     do {
-      request.httpBody = try JSONSerialization.data(withJSONObject: body)
+      let jsonData = try JSONSerialization.data(withJSONObject: body)
+
+      // DEBUG: Log the JSON structure (truncated)
+      if let jsonStr = String(data: jsonData, encoding: .utf8) {
+        let preview = String(jsonStr.prefix(500))
+        NSLog("[OpenClaw] Request JSON preview: %@", preview)
+        // Check if image is in the JSON (OpenAI format uses image_url)
+        if jsonStr.contains("\"type\":\"image_url\"") || jsonStr.contains("\"type\": \"image_url\"") {
+          NSLog("[OpenClaw] ✓ Image content IS in JSON (OpenAI format)")
+        } else if jsonStr.contains("data:image") {
+          NSLog("[OpenClaw] ✓ Image data URL found in JSON")
+        } else {
+          NSLog("[OpenClaw] ✗ Image content NOT in JSON!")
+        }
+      }
+
+      request.httpBody = jsonData
       let (data, response) = try await session.data(for: request)
       let httpResponse = response as? HTTPURLResponse
 
