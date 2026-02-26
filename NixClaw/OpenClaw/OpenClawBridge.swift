@@ -26,7 +26,7 @@ class OpenClawBridge: ObservableObject {
       let scheme = url.scheme ?? "http"
       self.uploadBaseURL = "\(scheme)://\(host):18795"
     } else {
-      self.uploadBaseURL = "http://192.168.1.70:18795"
+      self.uploadBaseURL = "http://arnabsnas.tailb3dd58.ts.net:18795"
     }
     self.uploadToken = "nixclaw-upload-secret"
     NSLog("[OpenClaw] Upload server: %@", uploadBaseURL)
