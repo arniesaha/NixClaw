@@ -51,6 +51,10 @@
 	<string>$(DEFAULT_OPENCLAW_TOKEN)</string>
 	<key>GeminiApiKey</key>
 	<string>$(GEMINI_API_KEY)</string>
+	<key>DefaultUploadServerPort</key>
+	<string>$(DEFAULT_UPLOAD_SERVER_PORT)</string>
+	<key>DefaultUploadServerToken</key>
+	<string>$(DEFAULT_UPLOAD_SERVER_TOKEN)</string>
 	<key>MWDAT</key>
 	<dict>
 		<key>AppLinkURLScheme</key>

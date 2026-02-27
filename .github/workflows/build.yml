@@ -33,10 +33,12 @@ jobs:
           APP_DISPLAY_NAME = NixClaw
           DEFAULT_ASSISTANT_NAME = Nix
           GEMINI_API_KEY = ${{ secrets.GEMINI_API_KEY }}
-          DEFAULT_OPENCLAW_SCHEME = http
-          DEFAULT_OPENCLAW_HOSTNAME = 192.168.1.70
-          DEFAULT_OPENCLAW_PORT = 18789
+          DEFAULT_OPENCLAW_SCHEME = ${{ secrets.OPENCLAW_SCHEME }}
+          DEFAULT_OPENCLAW_HOSTNAME = ${{ secrets.OPENCLAW_HOSTNAME }}
+          DEFAULT_OPENCLAW_PORT = ${{ secrets.OPENCLAW_PORT }}
           DEFAULT_OPENCLAW_TOKEN = ${{ secrets.OPENCLAW_TOKEN }}
+          DEFAULT_UPLOAD_SERVER_PORT = ${{ secrets.UPLOAD_SERVER_PORT }}
+          DEFAULT_UPLOAD_SERVER_TOKEN = ${{ secrets.UPLOAD_SERVER_TOKEN }}
           EOF
 
       - name: Build for Device

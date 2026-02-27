@@ -86,7 +86,7 @@ class AppConfig: ObservableObject {
     openClawPort = AppConfig.loadInt("openClawPort", plistKey: "DefaultOpenClawPort", fallback: 18789)
     openClawToken = AppConfig.load("openClawToken", plistKey: "DefaultOpenClawToken", fallback: "")
     uploadServerPort = AppConfig.loadInt("uploadServerPort", plistKey: "DefaultUploadServerPort", fallback: 18795)
-    uploadServerToken = AppConfig.load("uploadServerToken", plistKey: "DefaultUploadServerToken", fallback: "nixclaw-upload-secret")
+    uploadServerToken = AppConfig.load("uploadServerToken", plistKey: "DefaultUploadServerToken", fallback: "")
   }
 
   // MARK: - Reset
@@ -103,7 +103,7 @@ class AppConfig: ObservableObject {
     openClawPort = AppConfig.loadInt("openClawPort", plistKey: "DefaultOpenClawPort", fallback: 18789)
     openClawToken = AppConfig.load("openClawToken", plistKey: "DefaultOpenClawToken", fallback: "")
     uploadServerPort = AppConfig.loadInt("uploadServerPort", plistKey: "DefaultUploadServerPort", fallback: 18795)
-    uploadServerToken = AppConfig.load("uploadServerToken", plistKey: "DefaultUploadServerToken", fallback: "nixclaw-upload-secret")
+    uploadServerToken = AppConfig.load("uploadServerToken", plistKey: "DefaultUploadServerToken", fallback: "")
   }
 
   // MARK: - Helpers
