@@ -22,6 +22,11 @@ struct StreamView: View {
   @ObservedObject var wearablesVM: WearablesViewModel
   @ObservedObject var geminiVM: GeminiSessionViewModel
 
+  // Focus indicator state
+  @State private var focusIndicatorPosition: CGPoint = .zero
+  @State private var showFocusIndicator: Bool = false
+  @State private var focusIndicatorScale: CGFloat = 1.5
+
   var body: some View {
     ZStack {
       // Black background for letterboxing/pillarboxing
@@ -40,6 +45,20 @@ struct StreamView: View {
             .aspectRatio(contentMode: .fill)
             .frame(width: geometry.size.width, height: geometry.size.height)
             .clipped()
+            .contentShape(Rectangle())
+            .onTapGesture { location in
+              // Convert tap location to normalized coordinates (0-1)
+              let normalizedPoint = CGPoint(
+                x: location.x / geometry.size.width,
+                y: location.y / geometry.size.height
+              )
+              // Focus camera at tap point (iPhone mode only)
+              if viewModel.streamingMode == .iPhone {
+                viewModel.focusCamera(at: normalizedPoint)
+                // Show focus indicator animation
+                animateFocusIndicator(at: location)
+              }
+            }
         }
         .edgesIgnoringSafeArea(.all)
       } else if !geminiVM.isAudioOnlyMode {
@@ -104,6 +123,21 @@ struct StreamView: View {
         ControlsView(viewModel: viewModel, geminiVM: geminiVM)
       }
       .padding(.all, 24)
+
+      // Capture flash feedback overlay
+      CaptureFlashView(
+        isVisible: $geminiVM.showCaptureFlash,
+        capturedImage: geminiVM.capturedImageForFlash
+      )
+
+      // Focus indicator (tap-to-focus feedback)
+      if showFocusIndicator {
+        FocusIndicatorView()
+          .position(focusIndicatorPosition)
+          .scaleEffect(focusIndicatorScale)
+          .animation(.spring(response: 0.3, dampingFraction: 0.6), value: focusIndicatorScale)
+          .allowsHitTesting(false)
+      }
     }
     .onDisappear {
       Task {
@@ -247,5 +281,40 @@ struct ControlsView: View {
         }
       }
     }
+  }
+}
+
+// MARK: - StreamView Extension for Focus Animation
+
+extension StreamView {
+  /// Animate the focus indicator at the tap location
+  func animateFocusIndicator(at location: CGPoint) {
+    focusIndicatorPosition = location
+    focusIndicatorScale = 1.5
+    showFocusIndicator = true
+
+    // Animate scale down
+    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+      focusIndicatorScale = 1.0
+    }
+
+    // Hide after delay
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+      withAnimation(.easeOut(duration: 0.2)) {
+        showFocusIndicator = false
+      }
+    }
+  }
+}
+
+// MARK: - Focus Indicator View
+
+/// Yellow square focus indicator (like native iOS Camera app)
+struct FocusIndicatorView: View {
+  var body: some View {
+    RoundedRectangle(cornerRadius: 2)
+      .stroke(Color.yellow, lineWidth: 2)
+      .frame(width: 80, height: 80)
+      .shadow(color: .black.opacity(0.3), radius: 2)
   }
 }

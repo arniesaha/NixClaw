@@ -62,6 +62,11 @@ class StreamSessionViewModel: ObservableObject {
   private var deviceMonitorTask: Task<Void, Never>?
   private var iPhoneCameraManager: IPhoneCameraManager?
 
+  /// Focus the iPhone camera at a specific point (normalized 0-1 coordinates)
+  func focusCamera(at point: CGPoint) {
+    iPhoneCameraManager?.focusAt(point: point)
+  }
+
   init(wearables: WearablesInterface) {
     self.wearables = wearables
     // Let the SDK auto-select from available devices

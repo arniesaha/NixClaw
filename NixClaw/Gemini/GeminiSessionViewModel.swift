@@ -26,6 +26,10 @@ class GeminiSessionViewModel: ObservableObject {
   /// Debug: was image included in last tool call?
   @Published var lastToolCallIncludedImage: Bool = false
 
+  /// Capture feedback: triggers flash animation when image is sent to AI
+  @Published var showCaptureFlash: Bool = false
+  @Published var capturedImageForFlash: UIImage?
+
   /// Debug: expose bridge for UI debug indicators
   var openClawBridge: OpenClawBridge { _openClawBridge }
   private let _openClawBridge = OpenClawBridge()
@@ -169,6 +173,14 @@ class GeminiSessionViewModel: ObservableObject {
 
     // Wire tool call handling
     toolCallRouter = ToolCallRouter(bridge: _openClawBridge)
+
+    // Capture feedback: show flash animation when image is sent to AI
+    toolCallRouter?.onImageCaptured = { [weak self] image in
+      guard let self else { return }
+      self.capturedImageForFlash = image
+      self.showCaptureFlash = true
+      NSLog("[GeminiSession] Image captured - triggering flash feedback")
+    }
 
     geminiService.onToolCall = { [weak self] toolCall in
       guard let self else { return }

@@ -13,6 +13,9 @@ class ToolCallRouter {
     "describe", "camera", "screenshot", "capture", "snap"
   ]
 
+  /// Callback when an image is captured and sent to the AI
+  var onImageCaptured: ((UIImage) -> Void)?
+
   init(bridge: OpenClawBridge) {
     self.bridge = bridge
   }
@@ -40,6 +43,11 @@ class ToolCallRouter {
 
       NSLog("[ToolCall] FORCE INCLUDE IMAGE: hasFrame=%d, imageToSend is %@",
             hasFrame ? 1 : 0, imageToSend != nil ? "NOT NIL" : "NIL")
+
+      // Notify UI to show capture feedback if we're sending an image
+      if let image = imageToSend {
+        self.onImageCaptured?(image)
+      }
 
       let result = await bridge.delegateTask(task: taskDesc, toolName: callName, image: imageToSend)
 
