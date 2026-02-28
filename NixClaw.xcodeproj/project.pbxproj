@@ -48,7 +48,7 @@
 		E6DA451E2E79A63100E3F688 /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DA45172E79A63100E3F688 /* CardView.swift */; };
 		E6DA451F2E79A63100E3F688 /* MockDeviceKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DA451A2E79A63100E3F688 /* MockDeviceKitView.swift */; };
 		E6FD3BCE2EB4D53A00E7FE5D /* NonStreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FD3BCD2EB4D53A00E7FE5D /* NonStreamView.swift */; };
-		A1B2C3D42F0B000100000002 /* CaptureFlashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F0B000100000001 /* CaptureFlashView.swift */; };
+		CAPT01E2F0B0001000000002 /* CaptureFlashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAPT01E2F0B0001000000001 /* CaptureFlashView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,7 +138,7 @@
 		E6DA45182E79A63100E3F688 /* MockDeviceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceCardView.swift; sourceTree = "<group>"; };
 		E6DA451A2E79A63100E3F688 /* MockDeviceKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceKitView.swift; sourceTree = "<group>"; };
 		E6FD3BCD2EB4D53A00E7FE5D /* NonStreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonStreamView.swift; sourceTree = "<group>"; };
-		A1B2C3D42F0B000100000001 /* CaptureFlashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFlashView.swift; sourceTree = "<group>"; };
+		CAPT01E2F0B0001000000001 /* CaptureFlashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFlashView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -251,10 +251,10 @@
 		8FFD5FF42E8422580035E446 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D42F0B000100000001 /* CaptureFlashView.swift */,
 				8FFD60322E8434070035E446 /* MediaPickerView.swift */,
 				8FFD60332E8434070035E446 /* StatusText.swift */,
 				8FFD5FF22E8422580035E446 /* CircleButton.swift */,
+				CAPT01E2F0B0001000000001 /* CaptureFlashView.swift */,
 				8FFD5FF32E8422580035E446 /* CustomButton.swift */,
 				E6DA45172E79A63100E3F688 /* CardView.swift */,
 				A1B2C3D42F0A000100000005 /* GeminiOverlayView.swift */,
@@ -487,7 +487,7 @@
 				8F8F00782E8ACB4600A4BDAF /* WearablesViewModel.swift in Sources */,
 				E6A188482EB918740097D0E1 /* StreamView.swift in Sources */,
 				8FFD5FF52E8422580035E446 /* CircleButton.swift in Sources */,
-				A1B2C3D42F0B000100000002 /* CaptureFlashView.swift in Sources */,
+				CAPT01E2F0B0001000000002 /* CaptureFlashView.swift in Sources */,
 				8FFD5FF62E8422580035E446 /* CustomButton.swift in Sources */,
 				E6FD3BCE2EB4D53A00E7FE5D /* NonStreamView.swift in Sources */,
 				A1B2C3D42F0A000200000001 /* GeminiConfig.swift in Sources */,
