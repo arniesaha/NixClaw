@@ -1,24 +1,61 @@
 name: Build NixClaw
 
+# Compiles the app on a GitHub-hosted macOS runner. No secrets, no signing,
+# no device.
+#
+# This used to run on a self-hosted runner: a Mac mini with an iPhone
+# physically attached, building for that device and installing onto it. That
+# is a deploy pipeline rather than a CI check, and it does not belong in a
+# workflow on a public repository. `pull_request: [main]` meant a fork PR
+# could reach that machine and run arbitrary steps on it. For pull_request
+# events the workflow definition comes from the merge commit, not the base
+# branch, so a fork PR can rewrite this file; it does not even need to hide
+# in an Xcode Run Script phase. GitHub does withhold secrets from fork runs
+# and gates first-time contributors on approval, so the keys were not
+# directly readable from the workflow, but the runner was non-ephemeral and
+# its checkout persisted between jobs with a generated Config/Nix.xcconfig
+# sitting in it, real keys and all.
+#
+# The device install moved to scripts/deploy-device.sh, which is where it
+# belonged: it needs a specific phone plugged into a specific Mac.
+#
+# What is left is the part CI can actually answer, does it compile, and it
+# needs nothing secret to do so. Config/Nix.xcconfig is gitignored and is the
+# base configuration for every build config, so it has to exist; the
+# committed Config/NixClaw.xcconfig template supplies it with blank keys.
 on:
   push:
-    branches: [main, feat/*]
+    branches: [main, 'feat/*']
   pull_request:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: [self-hosted, macOS, ARM64, xcode]
-    
+    name: Build for simulator
+    runs-on: macos-15
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Unlock Keychain
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # Gitignored, and the base configuration for all four build configs, so
+      # nothing compiles without it. The template's keys are blank by design:
+      # the app shows its setup wizard rather than failing.
+      - name: Create build config from the committed template
         run: |
-          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
+          printf '#include "NixClaw.xcconfig"\n' > Config/Nix.xcconfig
+          cat Config/Nix.xcconfig
 
       - name: Resolve Swift packages
         run: |
@@ -26,39 +63,27 @@ jobs:
             -project NixClaw.xcodeproj \
             -scheme NixClaw
 
-      - name: Create build config
+      - name: Select an iPhone simulator
         run: |
-          cat > Config/Nix.xcconfig << EOF
-          #include "NixClaw.xcconfig"
-          APP_DISPLAY_NAME = NixClaw
-          DEFAULT_ASSISTANT_NAME = Nix
-          GEMINI_API_KEY = ${{ secrets.GEMINI_API_KEY }}
-          DEFAULT_OPENCLAW_SCHEME = ${{ secrets.OPENCLAW_SCHEME }}
-          DEFAULT_OPENCLAW_HOSTNAME = ${{ secrets.OPENCLAW_HOSTNAME }}
-          DEFAULT_OPENCLAW_PORT = ${{ secrets.OPENCLAW_PORT }}
-          DEFAULT_OPENCLAW_TOKEN = ${{ secrets.OPENCLAW_TOKEN }}
-          DEFAULT_UPLOAD_SERVER_PORT = ${{ secrets.UPLOAD_SERVER_PORT }}
-          DEFAULT_UPLOAD_SERVER_TOKEN = ${{ secrets.UPLOAD_SERVER_TOKEN }}
-          EOF
+          simulator_id="$(xcrun simctl list devices available \
+            | awk -F '[()]' '/iPhone/ { print $2; exit }')"
+          if [ -z "$simulator_id" ]; then
+            echo "No available iPhone simulator found." >&2
+            xcrun simctl list devices available >&2
+            exit 1
+          fi
+          echo "SIMULATOR_DESTINATION=id=$simulator_id" >> "$GITHUB_ENV"
+          echo "Selected simulator id=$simulator_id"
 
-      - name: Build for Device
+      # CODE_SIGNING_ALLOWED=NO because a hosted runner has no signing
+      # identity and a simulator build does not need one.
+      - name: Build
         run: |
+          set -o pipefail
           xcodebuild build \
             -project NixClaw.xcodeproj \
             -scheme NixClaw \
-            -destination "platform=iOS,id=00008150-000E22603CC2401C" \
+            -destination "$SIMULATOR_DESTINATION" \
             -configuration Debug \
             -derivedDataPath build \
-            | xcbeautify || tail -50
-
-      - name: Install on iPhone
-        run: |
-          APP_PATH=$(find build -name "NixClaw.app" -type d | head -1)
-          echo "Installing: $APP_PATH"
-          xcrun devicectl device install app --device 00008150-000E22603CC2401C "$APP_PATH"
-
-      - name: Report
-        if: always()
-        run: |
-          echo "Build completed at $(date)"
-          echo "Branch: ${{ github.ref_name }}"
+            CODE_SIGNING_ALLOWED=NO
