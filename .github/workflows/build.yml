@@ -40,14 +40,21 @@ concurrency:
 jobs:
   build:
     name: Build for simulator
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      # The app uses iOS 26 APIs (AVAudioSession's allowBluetoothHFP among
+      # them), so the image default is not necessarily new enough. Select the
+      # newest Xcode present rather than pinning a version that ages out.
+      - name: Select the newest Xcode on this image
+        run: |
+          newest="$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          echo "Using $newest"
+          sudo xcode-select -s "$newest"
+          xcodebuild -version
 
       # Gitignored, and the base configuration for all four build configs, so
       # nothing compiles without it. The template's keys are blank by design:
